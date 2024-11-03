@@ -310,7 +310,7 @@ export class Orbiter {
         collectionsThumbnailVar,
         collectionsCategoryVar,
         collectionsStatusVar,
-        swarmId: swarmId,
+        swarmId,
       });
       for (const table of releasesDbFormat.tableaux) {
         const tableKey = table.clef;
