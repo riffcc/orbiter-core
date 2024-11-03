@@ -1,0 +1,70 @@
+{
+  "name": "@riff/orbiter",
+  "version": "0.3.16",
+  "description": "",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf dist",
+    "compile": "pnpm update-version && pnpm clean && pnpm tspc -p tsconfig.json",
+    "compile:prod": "pnpm update-version && pnpm clean && pnpm tspc -p tsconfig.build.json",
+    "test:node": "pnpm compile && pnpm aegir test -t node -f \"dist/test/**/*.test.{js,cjs,mjs}\" --cov -- --exit",
+    "test:browser": "pnpm compile && pnpm aegir test -t browser -f \"dist/test/**/*.test.{js,cjs,mjs}\" --cov",
+    "test:electron-main": "pnpm compile && pnpm aegir test -t electron-main -f \"dist/test/**/*.test.{js,cjs,mjs}\" --cov",
+    "test:electron-renderer": "pnpm compile && pnpm aegir test -t electron-renderer -f \"dist/test/**/*.test.{js,cjs,mjs}\" --cov",
+    "test": "pnpm test:node && pnpm test:browser",
+    "format": "pnpm prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\" && pnpm eslint src test",
+    "publish": "pnpm test && pnpm compile:prod && (git commit -a -m 'version' || true) && pnpm publish",
+    "update-version": "pnpm genversion  --es6 --semi src/version.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/julienmalard/nuchabal.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "AGPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/julienmalard/nuchabal/issues"
+  },
+  "homepage": "https://github.com/julienmalard/nuchabal#readme",
+  "devDependencies": {
+    "@constl/ipa": "^1.3.0",
+    "@constl/orbit-db-types": "^2.0.6",
+    "@constl/utils-tests": "^1.6.2",
+    "@eslint/js": "^9.14.0",
+    "@types/mocha": "^10.0.9",
+    "aegir": "^44.1.4",
+    "ajv": "^8.17.1",
+    "browserify-fs": "^1.0.0",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.1",
+    "electron": "^31.7.3",
+    "eslint": "^9.14.0",
+    "eslint-config-prettier": "^9.1.0",
+    "genversion": "^3.2.0",
+    "mocha": "^10.8.2",
+    "os-browserify": "^0.3.0",
+    "prettier": "^3.3.3",
+    "process": "^0.11.10",
+    "rimraf": "^6.0.1",
+    "stream-browserify": "^3.0.0",
+    "tiny-typed-emitter": "^2.1.0",
+    "ts-node": "^10.9.2",
+    "ts-patch": "^3.2.1",
+    "typescript": "5.5.4",
+    "typescript-eslint": "^8.12.2",
+    "typescript-transform-paths": "^3.5.1",
+    "vue": "^3.5.12",
+    "wherearewe": "^2.0.1"
+  },
+  "peerDependencies": {
+    "@constl/ipa": "^1.0.14"
+  },
+  "dependencies": {
+    "@constl/utils-ipa": "^1.0.3",
+    "@orbitdb/core": "^2.4.3",
+    "deepcopy": "^2.1.0",
+    "semaphore-async-await": "^1.5.1"
+  }
+}
