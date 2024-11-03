@@ -14,7 +14,7 @@
     "test:electron-renderer": "pnpm compile && pnpm aegir test -t electron-renderer -f \"dist/test/**/*.test.{js,cjs,mjs}\" --cov",
     "test": "pnpm test:node && pnpm test:browser",
     "format": "pnpm prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\" && pnpm eslint src test",
-    "publish": "pnpm test && pnpm compile:prod && (git commit -a -m 'version' || true) && pnpm publish",
+    "release": "pnpm test && pnpm compile:prod && (git commit -a -m 'version' || true) && pnpm publish",
     "update-version": "pnpm genversion  --es6 --semi src/version.ts"
   },
   "repository": {
