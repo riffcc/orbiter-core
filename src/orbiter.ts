@@ -1566,3 +1566,20 @@ export class Orbiter {
     });
   }
 };
+
+export const createOrbiter = async ({
+  siteId,
+  swarmId,
+  variableIds = {},
+  constellation,
+}: {
+  siteId?: string;
+  swarmId?: string;
+  variableIds?: possiblyIncompleteVariableIds;
+  constellation: Constellation;
+}) => {
+  
+  const orbiter = new Orbiter({siteId, swarmId, variableIds, constellation})
+  await orbiter.setUpSite();
+  return orbiter;
+}
