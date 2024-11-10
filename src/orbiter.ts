@@ -52,7 +52,7 @@ import type {
 } from "./types.js";
 import { variableIdKeys } from "./types.js";
 import { removeUndefined } from "./utils.js";
-import { getConfig } from "./config.js";
+import { exportConfig, getConfig, saveConfig } from "./config.js";
 
 type forgetFunction = () => Promise<void>;
 
@@ -1766,12 +1766,15 @@ export const createOrbiter = async ({
 }: {
   constellation: Constellation;
 }) => {
+  const dir = await constellation.dossier()
   const existingConfig = getConfig({
-    dir: await constellation.dossier(),
+    dir,
   });
 
   const orbiter = new Orbiter({ constellation, ...existingConfig });
   const config = await orbiter.setUpSite();
-  if (!isEqual(existingConfig, config)) saveConfig(config);
+  if (!isEqual(existingConfig, config)) {
+    saveConfig({dir, config, mode: 'json'})
+  };
   return { config, orbiter };
 };

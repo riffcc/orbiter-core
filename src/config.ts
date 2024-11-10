@@ -1,10 +1,11 @@
 import {
   ConfigMode,
   VariableIds,
+  orbiterConfigSchema,
   possiblyIncompleteOrbiterConfigSchema,
   type OrbiterConfig,
   type PossiblyIncompleteOrbiterConfig,
-} from "./types";
+} from "./types.js";
 
 import {constantCase} from 'change-case';
 import {
@@ -13,12 +14,18 @@ import {
   isReactNative,
   isWebWorker,
 } from "wherearewe";
-import Ajv from "ajv/dist/jtd";
+import Ajv from "ajv/dist/jtd.js";
 
 import { CONFIG_FILE_NAME } from "./consts.js";
 
 const ajv = new Ajv();
 const validateConfig = ajv.compile(possiblyIncompleteOrbiterConfigSchema);
+const validateCompleteConfig = ajv.compile(orbiterConfigSchema)
+
+export const configIsComplete = (config: unknown): config is OrbiterConfig => {
+  if (validateCompleteConfig(config)) return true;
+  return false;
+};
 
 export const getConfig = async ({
   dir,
@@ -52,7 +59,7 @@ export const getConfig = async ({
 export const saveConfig = async ({
   dir,
   config,
-  mode = "vite",
+  mode,
 }: {
   dir: string;
   config: OrbiterConfig;
@@ -72,12 +79,13 @@ export const saveConfig = async ({
 
 export const exportConfig = ({
   config,
-  mode = "vite",
+  mode,
 }: {
   config: OrbiterConfig;
   mode: ConfigMode;
 }): string => {
   if (mode === "vite") return exportViteConfig({ config });
+  else if (mode === 'json') return exportJsonConfig({ config });
   else throw new Error(`Unknown exportation mode ${mode}.`);
 };
 
@@ -104,3 +112,11 @@ export const exportViteConfig = ({
   ;
   return envFileText;
 };
+
+export const exportJsonConfig = ({
+    config,
+  }: {
+    config: OrbiterConfig;
+  }): string => {
+    return JSON.stringify(config, undefined, 2);
+  }

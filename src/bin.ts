@@ -15,6 +15,9 @@ import {
 } from "@constl/ipa";
 
 import { createOrbiter } from "@/orbiter.js";
+import { configIsComplete, exportConfig, getConfig } from "@/config.js";
+import { ConfigMode } from "./types.js";
+
 const MACHINE_PREFIX = "MACHINE MESSAGE:";
 
 const baseDir = url.fileURLToPath(new URL("..", import.meta.url));
@@ -75,6 +78,76 @@ const followConnections = async ({ ipa }: { ipa: Constellation }) => {
 
 yargs(hideBin(process.argv))
   .usage("Usage: $0 <command> [options]")
+  .command(["config [--dir <dir>]"],
+    "Configure Orbiter",
+    (yargs) => {
+      return yargs
+        .option("dir", {
+          alias: "d",
+          describe: "The directory of the Orbiter node.",
+          type: "string",
+        });
+    },
+    async (argv) => {
+      const wheel = ora(chalk.yellow(`Creating config`));
+      wheel.start(chalk.yellow("Configuring Orbiter..."));
+      const constellation = créerConstellation({
+        dossier: argv.dir || ".orbiter",
+      });
+
+      await createOrbiter({
+        constellation,
+      });
+      await constellation.fermer();
+      wheel?.succeed(chalk.yellow("Orbiter configured. Use `orbiter export-config` to export for use in static deployments."))
+      process.exit(0);
+    }
+  )
+  .command(["export-config [--format <format>]"],
+    "Export Orbiter config for use in UIs, etc.",
+    (yargs) => {
+      return yargs
+        .option("dir", {
+          alias: "d",
+          describe: "The directory of the Orbiter node.",
+          type: "string",
+          default: ".orbiter",
+        })
+        .option("format", {
+          alias: "f",
+          describe: "The configuration format to output ('vite' available for now).",
+          type: "string",
+          default: 'vite'
+        })
+        .option("out", {
+          alias: "o",
+          describe: "The output env file in which to store the exported configuration.",
+          type: "string",
+        });
+    },
+    async (argv) => {
+      const wheel = ora();
+      wheel.start(chalk.yellow("Obtaining Orbiter config..."));
+
+      const outputFile = argv.out || (argv.format === 'json' ? 'config.json': '.env')
+
+      const config = await getConfig({
+        dir: argv.dir
+      })
+      if (configIsComplete(config)) {
+        wheel.info(chalk.yellow("Exporting Orbiter config..."));
+      
+        const exportedConfig = exportConfig({
+          config,
+          mode: (argv.format as ConfigMode) || 'vite',
+        })
+        fs.writeFileSync(outputFile, exportedConfig);
+        wheel.succeed(chalk.yellow(`Configuration exported to ${path.resolve(outputFile)}.`))
+      } else {
+        wheel.fail(chalk.red("Orbiter is not properly configured. Run `orbiter config` first."))
+      }
+    }
+  )
   .command(
     ["run [-m] [--dir <dir>]"],
     "Start orbiter",
@@ -84,6 +157,7 @@ yargs(hideBin(process.argv))
           alias: "d",
           describe: "The directory of the Orbiter node.",
           type: "string",
+          default: ".orbiter",
         })
         .option("machine", {
           alias: "m",
@@ -94,7 +168,7 @@ yargs(hideBin(process.argv))
     },
     async (argv) => {
       let wheel: Ora | undefined = undefined;
-      let oublierConnexions: types.schémaFonctionOublier | undefined =
+      let forgetConnections: types.schémaFonctionOublier | undefined =
         undefined;
 
       if (argv.machine) {
@@ -104,14 +178,12 @@ yargs(hideBin(process.argv))
       }
 
       const constellation = créerConstellation({
-        dossier: argv.dir || ".orbiter",
+        dossier: argv.dir,
       });
 
-      const { config } = await createOrbiter({
+      await createOrbiter({
         constellation,
       });
-
-      console.log(config);
 
       process.stdin.on("data", async () => {
         if (argv.machine) {
@@ -120,7 +192,7 @@ yargs(hideBin(process.argv))
           wheel?.start(chalk.yellow("Closing Orbiter..."));
         }
         try {
-          await oublierConnexions?.();
+          await forgetConnections?.();
           await constellation.fermer();
         } finally {
           if (argv.machine) {
@@ -139,7 +211,7 @@ yargs(hideBin(process.argv))
         wheel!.succeed(
           chalk.yellow("Orbiter is running. Press `enter` to close."),
         );
-        oublierConnexions = await followConnections({ ipa: constellation });
+        forgetConnections = await followConnections({ ipa: constellation });
       }
     },
   )

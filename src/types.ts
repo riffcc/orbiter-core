@@ -1,4 +1,4 @@
-import { type JTDSchemaType } from "ajv/dist/jtd";
+import { type JTDSchemaType } from "ajv/dist/jtd.js";
 
 import type {
   BLOCKED_RELEASES_RELEASE_ID_COLUMN,
@@ -81,7 +81,20 @@ export const possiblyIncompleteOrbiterConfigSchema: JTDSchemaType<PossiblyIncomp
       },
     },
   };
-export type ConfigMode = "vite"; // Todo: add for other compilers?
+export const orbiterConfigSchema: JTDSchemaType<OrbiterConfig> =
+{
+  properties: {
+    siteId: { type: "string" },
+    swarmId: { type: "string" },
+    variableIds: {
+      properties: Object.fromEntries(
+        variableIdKeys.map((v) => [v, { type: "string" }]),
+      ) as { [P in keyof VariableIds]: { type: "string" } },
+    },
+  },
+};
+
+export type ConfigMode = "vite" | "json"; // Todo: add for other compilers?
 
 export type Release = {
   [RELEASES_NAME_COLUMN]: string;
