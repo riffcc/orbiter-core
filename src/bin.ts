@@ -226,6 +226,6 @@ yargs(hideBin(process.argv))
     },
   )
   .demandCommand()
-  .help("help", "Get command line help")
+  .help()
   .epilog("Source code and bug reports: https://github.com/riffcc/orbiter")
   .parse();
