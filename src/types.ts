@@ -1,3 +1,5 @@
+import { type JTDSchemaType } from "ajv/dist/jtd";
+
 import type {
   BLOCKED_RELEASES_RELEASE_ID_COLUMN,
   COLLECTIONS_AUTHOR_COLUMN,
@@ -20,35 +22,66 @@ import type {
   RELEASES_THUMBNAIL_COLUMN,
   TRUSTED_SITES_NAME_COL,
   TRUSTED_SITES_SITE_ID_COL,
-} from './consts';
+} from "./consts";
 
 export const variableIdKeys = [
-  'trustedSitesSiteIdVar',
-  'trustedSitesNameVar',
-  'releasesContentNameVar',
-  'releasesFileVar',
-  'releasesThumbnailVar',
-  'releasesCoverVar',
-  'releasesAuthorVar',
-  'releasesMetadataVar',
-  'releasesCategoryVar',
-  'releasesStatusVar',
-  'collectionsNameVar',
-  'collectionsAuthorVar',
-  'collectionsThumbnailVar',
-  'collectionsMetadataVar',
-  'collectionsCategoryVar',
-  'collectionsReleasesVar',
-  'collectionsStatusVar',
-  'featuredReleasesReleaseIdVar',
-  'featuredReleasesStartTimeVar',
-  'featuredReleasesEndTimeVar',
-  'blockedReleasesReleaseIdVar',
+  "trustedSitesSiteIdVar",
+  "trustedSitesNameVar",
+  "releasesContentNameVar",
+  "releasesFileVar",
+  "releasesThumbnailVar",
+  "releasesCoverVar",
+  "releasesAuthorVar",
+  "releasesMetadataVar",
+  "releasesCategoryVar",
+  "releasesStatusVar",
+  "collectionsNameVar",
+  "collectionsAuthorVar",
+  "collectionsThumbnailVar",
+  "collectionsMetadataVar",
+  "collectionsCategoryVar",
+  "collectionsReleasesVar",
+  "collectionsStatusVar",
+  "featuredReleasesReleaseIdVar",
+  "featuredReleasesStartTimeVar",
+  "featuredReleasesEndTimeVar",
+  "blockedReleasesReleaseIdVar",
 ] as const;
 
 export type VariableIds = Record<(typeof variableIdKeys)[number], string>;
 
-export type possiblyIncompleteVariableIds = Partial<VariableIds>;
+export type PossiblyIncompleteVariableIds = Partial<VariableIds>;
+
+export type OrbiterConfig = {
+  siteId: string;
+  swarmId: string;
+  variableIds: VariableIds;
+};
+
+export type RecursivePartial<T> = {
+  // From https://stackoverflow.com/questions/41980195/recursive-partialt-in-typescript
+  [P in keyof T]?: T[P] extends (infer U)[]
+    ? RecursivePartial<U>[]
+    : T[P] extends object | undefined
+      ? RecursivePartial<T[P]>
+      : T[P];
+};
+
+export type PossiblyIncompleteOrbiterConfig = RecursivePartial<OrbiterConfig>;
+
+export const possiblyIncompleteOrbiterConfigSchema: JTDSchemaType<PossiblyIncompleteOrbiterConfig> =
+  {
+    optionalProperties: {
+      siteId: { type: "string" },
+      swarmId: { type: "string" },
+      variableIds: {
+        optionalProperties: Object.fromEntries(
+          variableIdKeys.map((v) => [v, { type: "string" }]),
+        ) as { [P in keyof VariableIds]: { type: "string" } },
+      },
+    },
+  };
+export type ConfigMode = "vite"; // Todo: add for other compilers?
 
 export type Release = {
   [RELEASES_NAME_COLUMN]: string;

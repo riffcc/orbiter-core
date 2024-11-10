@@ -1,6 +1,4 @@
-import {
-  version,
-} from "@/index.js";
+import { version } from "@/index.js";
 import { expect } from "aegir/chai";
 
 describe("Orbiter", () => {

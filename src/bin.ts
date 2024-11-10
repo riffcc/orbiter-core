@@ -15,13 +15,13 @@ import {
 } from "@constl/ipa";
 
 import { createOrbiter } from "@/orbiter.js";
-const MACHINE_PREFIX = "MACHINE MESSAGE:"
+const MACHINE_PREFIX = "MACHINE MESSAGE:";
 
 const baseDir = url.fileURLToPath(new URL("..", import.meta.url));
 const packageJsonFile = path.join(baseDir, "./package.json");
 const packageJson = JSON.parse(fs.readFileSync(packageJsonFile, "utf8"));
 
-const sendMachineMessage = ({ message }: { message: {type: string} }) => {
+const sendMachineMessage = ({ message }: { message: { type: string } }) => {
   console.log(MACHINE_PREFIX + JSON.stringify(message));
 };
 
@@ -37,18 +37,19 @@ const followConnections = async ({ ipa }: { ipa: Constellation }) => {
 
   const fFinale = () => {
     const nIpfsConnections = connexions.sfip.length;
-    const nConstellationConnections = connexions.constellation.filter((c) => c.infoMembre.idCompte !== connexions.monId && !c.vuÀ).length;
+    const nConstellationConnections = connexions.constellation.filter(
+      (c) => c.infoMembre.idCompte !== connexions.monId && !c.vuÀ,
+    ).length;
 
     logUpdate(
       chalk.yellow(
-        // eslint-disable-next-line no-irregular-whitespace
         `Network connections: ${nIpfsConnections}\nConstellation nodes online: ${nConstellationConnections}`,
       ),
     );
   };
 
   const forgetMyId = await ipa.suivreIdCompte({
-    f: id => connexions.monId = id,
+    f: (id) => (connexions.monId = id),
   });
   const forgetIpfsConnections = await ipa.réseau.suivreConnexionsPostesSFIP({
     f: (x) => {
@@ -62,7 +63,7 @@ const followConnections = async ({ ipa }: { ipa: Constellation }) => {
         connexions.constellation = x;
         fFinale();
       },
-    });  // TODO: check specifically for Orbiter instances on the Constellation network
+    }); // TODO: check specifically for Orbiter instances on the Constellation network
   return async () => {
     await Promise.all([
       forgetMyId(),
@@ -86,7 +87,8 @@ yargs(hideBin(process.argv))
         })
         .option("machine", {
           alias: "m",
-          describe: "Machine communication mode (useful for programmatic access).",
+          describe:
+            "Machine communication mode (useful for programmatic access).",
           type: "boolean",
         });
     },
@@ -98,16 +100,18 @@ yargs(hideBin(process.argv))
       if (argv.machine) {
         sendMachineMessage({ message: { type: "STARTING ORBITER" } });
       } else {
-        wheel = ora(chalk.yellow(`Initialising Orbiter`));  // .start()
+        wheel = ora(chalk.yellow(`Initialising Orbiter`)); // .start()
       }
 
       const constellation = créerConstellation({
-        dossier: argv.dir || '.orbiter',
-      })
+        dossier: argv.dir || ".orbiter",
+      });
 
-      await createOrbiter({
+      const { config } = await createOrbiter({
         constellation,
       });
+
+      console.log(config);
 
       process.stdin.on("data", async () => {
         if (argv.machine) {
@@ -133,7 +137,7 @@ yargs(hideBin(process.argv))
         });
       } else {
         wheel!.succeed(
-          chalk.yellow("Orbiter is running. Press any key to close."),
+          chalk.yellow("Orbiter is running. Press `enter` to close."),
         );
         oublierConnexions = await followConnections({ ipa: constellation });
       }
@@ -151,7 +155,5 @@ yargs(hideBin(process.argv))
   )
   .demandCommand()
   .help("help", "Get command line help")
-  .epilog(
-    "Source code and bug reports: https://github.com/riffcc/orbiter",
-  )
+  .epilog("Source code and bug reports: https://github.com/riffcc/orbiter")
   .parse();
