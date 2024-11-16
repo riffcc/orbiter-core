@@ -1,4 +1,4 @@
-import { type JTDSchemaType } from "ajv/dist/jtd.js";
+import { type JSONSchemaType } from "ajv";
 
 import type {
   BLOCKED_RELEASES_RELEASE_ID_COLUMN,
@@ -69,8 +69,9 @@ export type RecursivePartial<T> = {
 
 export type PossiblyIncompleteOrbiterConfig = RecursivePartial<OrbiterConfig>;
 
-export const possiblyIncompleteOrbiterConfigSchema: JTDSchemaType<PossiblyIncompleteOrbiterConfig> =
+export const possiblyIncompleteOrbiterConfigSchema: JSONSchemaType<PossiblyIncompleteOrbiterConfig> =
   {
+    type: 'object',
     optionalProperties: {
       siteId: { type: "string" },
       swarmId: { type: "string" },
@@ -81,17 +82,21 @@ export const possiblyIncompleteOrbiterConfigSchema: JTDSchemaType<PossiblyIncomp
       },
     },
   };
-export const orbiterConfigSchema: JTDSchemaType<OrbiterConfig> =
+export const orbiterConfigSchema: JSONSchemaType<OrbiterConfig> =
 {
+  type: 'object',
   properties: {
     siteId: { type: "string" },
     swarmId: { type: "string" },
     variableIds: {
+      type: 'object',
       properties: Object.fromEntries(
         variableIdKeys.map((v) => [v, { type: "string" }]),
       ) as { [P in keyof VariableIds]: { type: "string" } },
+      required: variableIdKeys
     },
   },
+  required: ['siteId', 'swarmId', 'variableIds']
 };
 
 export type ConfigMode = "vite" | "json"; // Todo: add for other compilers?
