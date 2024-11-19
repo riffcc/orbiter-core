@@ -72,15 +72,19 @@ export type PossiblyIncompleteOrbiterConfig = RecursivePartial<OrbiterConfig>;
 export const possiblyIncompleteOrbiterConfigSchema: JSONSchemaType<PossiblyIncompleteOrbiterConfig> =
   {
     type: 'object',
-    optionalProperties: {
-      siteId: { type: "string" },
-      swarmId: { type: "string" },
+    properties: {
+      siteId: { type: "string", nullable: true },
+      swarmId: { type: "string", nullable: true },
       variableIds: {
-        optionalProperties: Object.fromEntries(
-          variableIdKeys.map((v) => [v, { type: "string" }]),
-        ) as { [P in keyof VariableIds]: { type: "string" } },
+        type: 'object',
+        nullable: true,
+        properties: Object.fromEntries(
+          variableIdKeys.map((v) => [v, { type: "string", nullable: true }]),
+        ) as { [P in keyof VariableIds]: { type: "string", nullable: true } },
+        required: [],
       },
     },
+    required: [],
   };
 export const orbiterConfigSchema: JSONSchemaType<OrbiterConfig> =
 {

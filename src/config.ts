@@ -14,13 +14,13 @@ import {
   isReactNative,
   isWebWorker,
 } from "wherearewe";
-import Ajv from "ajv/dist/jtd.js";
+import Ajv from "ajv";
 
 import { CONFIG_FILE_NAME } from "./consts.js";
 
 const ajv = new Ajv();
-const validateConfig = ajv.compile(possiblyIncompleteOrbiterConfigSchema);
 const validateCompleteConfig = ajv.compile(orbiterConfigSchema)
+const validateConfig = ajv.compile(possiblyIncompleteOrbiterConfigSchema);
 
 export const configIsComplete = (config: unknown): config is OrbiterConfig => {
   if (validateCompleteConfig(config)) return true;
