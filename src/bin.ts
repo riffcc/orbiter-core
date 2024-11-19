@@ -103,7 +103,7 @@ yargs(hideBin(process.argv))
       process.exit(0);
     }
   )
-  .command(["export-config [--format <format>]"],
+  .command(["export-config [--format <format> --dir <dir> --out <out>]"],
     "Export Orbiter config for use in UIs, etc.",
     (yargs) => {
       return yargs
@@ -111,11 +111,11 @@ yargs(hideBin(process.argv))
           alias: "d",
           describe: "The directory of the Orbiter node.",
           type: "string",
-          default: ".orbiter",
+          default: "./orbiter",
         })
         .option("format", {
           alias: "f",
-          describe: "The configuration format to output ('vite' available for now).",
+          describe: "The configuration format to output ('vite' and 'json' available for now).",
           type: "string",
           default: 'vite'
         })
@@ -228,4 +228,5 @@ yargs(hideBin(process.argv))
   .demandCommand()
   .help()
   .epilog("Source code and bug reports: https://github.com/riffcc/orbiter")
+  .scriptName("orb")
   .parse();
