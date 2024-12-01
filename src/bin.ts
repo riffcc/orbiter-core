@@ -215,6 +215,40 @@ yargs(hideBin(process.argv))
       }
     },
   )
+  .command( ["authorise --device <device> [--dir <dir>]"],
+  "Start orbiter",
+  (yargs) => {
+    return yargs
+      .option("dir", {
+        alias: "d",
+        describe: "The directory of the Orbiter node.",
+        type: "string",
+        default: ".orbiter",
+      })
+      .option("device", {
+        alias: "dev",
+        describe:
+          "Id of the device to add to this account.",
+        type: "string",
+      });
+  },
+  async (argv) => {
+    if (!argv.device) throw new Error("Device must be specified.")
+
+    const constellation = créerConstellation({
+      dossier: argv.dir,
+    });
+
+    await createOrbiter({
+      constellation,
+    });
+
+    await constellation.ajouterDispositif({
+      idDispositif: argv.device
+    })
+  },
+
+  )
   .command(
     ["version"],
     "Get orbiter version",
