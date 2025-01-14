@@ -52,7 +52,7 @@ import type {
 } from "./types.js";
 import { variableIdKeys } from "./types.js";
 import { removeUndefined } from "./utils.js";
-import { exportConfig, getConfig, saveConfig } from "./config.js";
+import { getConfig, saveConfig } from "./config.js";
 
 type forgetFunction = () => Promise<void>;
 
