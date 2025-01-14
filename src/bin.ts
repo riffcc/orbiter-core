@@ -216,7 +216,7 @@ yargs(hideBin(process.argv))
     },
   )
   .command( ["authorise --device <device> [--dir <dir>]"],
-  "Start orbiter",
+  "Authorise a new device",
   (yargs) => {
     return yargs
       .option("dir", {
