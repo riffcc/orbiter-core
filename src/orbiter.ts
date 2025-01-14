@@ -1580,11 +1580,11 @@ export class Orbiter {
     )[0];
   }
 
-  async listenToIsModerator({
+  async followIsModerator({
     f,
     userId,
   }: {
-    f: (isMod: "ADMIN" | "MODERATOR" | undefined) => void;
+    f: (status: "ADMIN" | "MODERATOR" | undefined) => void;
     userId?: string;
   }): Promise<forgetFunction> {
     // User current user if none is specified.
