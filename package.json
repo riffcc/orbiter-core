@@ -1,6 +1,6 @@
 {
   "name": "@riffcc/orbiter",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "",
   "main": "dist/index.js",
   "type": "module",
@@ -29,7 +29,7 @@
   },
   "homepage": "https://github.com/julienmalard/nuchabal#readme",
   "devDependencies": {
-    "@constl/ipa": "^1.5.0",
+    "@constl/ipa": "^1.5.6",
     "@constl/orbit-db-types": "^2.0.6",
     "@constl/utils-tests": "^1.6.7",
     "@eslint/js": "^9.14.0",
@@ -55,7 +55,6 @@
     "typescript": "5.6.3",
     "typescript-eslint": "^8.12.2",
     "typescript-transform-paths": "^3.5.2",
-    "vue": "^3.5.12",
     "wherearewe": "^2.0.1"
   },
   "peerDependencies": {
