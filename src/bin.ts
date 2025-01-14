@@ -233,7 +233,7 @@ yargs(hideBin(process.argv))
       });
   },
   async (argv) => {
-    if (!argv.device) throw new Error("Device must be specified.")
+    if (!argv.device) throw new Error("Device must be specified.");
 
     const constellation = créerConstellation({
       dossier: argv.dir,
