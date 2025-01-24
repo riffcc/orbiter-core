@@ -215,7 +215,7 @@ yargs(hideBin(process.argv))
       }
     },
   )
-  .command( ["authorise --device <device> [--dir <dir>]"],
+  .command( ["authorise [--device <device> --dir <dir>]"],
   "Authorise a new device",
   (yargs) => {
     return yargs
