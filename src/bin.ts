@@ -99,7 +99,7 @@ yargs(hideBin(process.argv))
         constellation,
       });
       await constellation.fermer();
-      wheel?.succeed(chalk.yellow("Orbiter configured. Use `orbiter export-config` to export for use in static deployments."))
+      wheel?.succeed(chalk.yellow("Orbiter configured. Use `orb export-config` to export for use in static deployments."))
       process.exit(0);
     }
   )
@@ -111,7 +111,7 @@ yargs(hideBin(process.argv))
           alias: "d",
           describe: "The directory of the Orbiter node.",
           type: "string",
-          default: "./orbiter",
+          default: ".orbiter",
         })
         .option("format", {
           alias: "f",
@@ -144,7 +144,7 @@ yargs(hideBin(process.argv))
         fs.writeFileSync(outputFile, exportedConfig);
         wheel.succeed(chalk.yellow(`Configuration exported to ${path.resolve(outputFile)}.`))
       } else {
-        wheel.fail(chalk.red("Orbiter is not properly configured. Run `orbiter config` first."))
+        wheel.fail(chalk.red("Orbiter is not properly configured. Run `orb config` first."))
       }
     }
   )
