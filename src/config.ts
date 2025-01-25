@@ -18,11 +18,10 @@ import Ajv from "ajv";
 
 import { CONFIG_FILE_NAME } from "./consts.js";
 
-const ajv = new Ajv();
-const validateCompleteConfig = ajv.compile(orbiterConfigSchema)
-const validateConfig = ajv.compile(possiblyIncompleteOrbiterConfigSchema);
-
 export const configIsComplete = (config: unknown): config is OrbiterConfig => {
+  const ajv = new Ajv();
+  const validateCompleteConfig = ajv.compile(orbiterConfigSchema)
+
   if (validateCompleteConfig(config)) return true;
   return false;
 };
@@ -37,6 +36,9 @@ export const getConfig = async ({
       "The `getConfig` function is only available in Node and Electron main environments.",
     );
   }
+  const ajv = new Ajv();
+  const validateConfig = ajv.compile(possiblyIncompleteOrbiterConfigSchema);
+
   const { existsSync, readFileSync } = await import("fs");
   const { join } = await import("path");
   const configFilePath = join(dir, CONFIG_FILE_NAME);
