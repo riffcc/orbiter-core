@@ -215,7 +215,7 @@ yargs(hideBin(process.argv))
       }
     },
   )
-  .command(["authorise [--device <device> --dir <dir>]"],
+  .command( ["authorise <device> [--dir <dir>]"],
   "Authorise a new device",
   (yargs) => {
     return yargs
@@ -225,8 +225,7 @@ yargs(hideBin(process.argv))
         type: "string",
         default: ".orbiter",
       })
-      .option("device", {
-        alias: "dev",
+      .positional("device", {
         describe:
           "Id of the device to add to this account.",
         type: "string",
@@ -246,6 +245,9 @@ yargs(hideBin(process.argv))
     await constellation.ajouterDispositif({
       idDispositif: argv.device
     })
+
+    await constellation.fermer();
+    process.exit(0);
   },
 
   )
