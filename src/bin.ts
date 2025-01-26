@@ -172,47 +172,51 @@ yargs(hideBin(process.argv))
       let forgetConnections: types.schémaFonctionOublier | undefined =
         undefined;
 
-      if (argv.machine) {
-        sendMachineMessage({ message: { type: "STARTING ORBITER" } });
-      } else {
-        wheel = ora(chalk.yellow(`Initialising Orbiter`)); // .start()
-      }
+      const config = await getConfig({
+        dir: argv.dir
+      })
 
-      const constellation = créerConstellation({
-        dossier: argv.dir,
-      });
-
-      await createOrbiter({
-        constellation,
-      });
-
-      process.stdin.on("data", async () => {
+      if (configIsComplete(config)) {
         if (argv.machine) {
-          sendMachineMessage({ message: { type: "Closing Orbiter" } });
+          sendMachineMessage({ message: { type: "STARTING ORBITER" } });
         } else {
-          wheel?.start(chalk.yellow("Closing Orbiter..."));
+          wheel = ora(chalk.yellow(`Initialising Orbiter`)); // .start()
         }
-        try {
-          await forgetConnections?.();
-          await constellation.fermer();
-        } finally {
-          if (argv.machine) {
-            sendMachineMessage({ message: { type: "CLOSED" } });
-          } else {
-            wheel?.succeed(chalk.yellow("Orbiter closed."));
-          }
-          process.exit(0);
-        }
-      });
-      if (argv.machine) {
-        sendMachineMessage({
-          message: { type: "ORBITER READY" },
+
+        const constellation = créerConstellation({
+          dossier: argv.dir,
         });
+
+        process.stdin.on("data", async () => {
+          if (argv.machine) {
+            sendMachineMessage({ message: { type: "Closing Orbiter" } });
+          } else {
+            wheel?.start(chalk.yellow("Closing Orbiter..."));
+          }
+          try {
+            await forgetConnections?.();
+            await constellation.fermer();
+          } finally {
+            if (argv.machine) {
+              sendMachineMessage({ message: { type: "CLOSED" } });
+            } else {
+              wheel?.succeed(chalk.yellow("Orbiter closed."));
+            }
+            process.exit(0);
+          }
+        });
+        if (argv.machine) {
+          sendMachineMessage({
+            message: { type: "ORBITER READY" },
+          });
+        } else {
+          wheel!.succeed(
+            chalk.yellow("Orbiter is running. Press `enter` to close."),
+          );
+          forgetConnections = await followConnections({ ipa: constellation });
+        }
       } else {
-        wheel!.succeed(
-          chalk.yellow("Orbiter is running. Press `enter` to close."),
-        );
-        forgetConnections = await followConnections({ ipa: constellation });
+        console.log(chalk.red("Orbiter is not properly configured. Run `orb config` first."));
       }
     },
   )
@@ -234,21 +238,25 @@ yargs(hideBin(process.argv))
   },
   async (argv) => {
     if (!argv.device) throw new Error("Device must be specified.");
-
-    const constellation = créerConstellation({
-      dossier: argv.dir,
-    });
-
-    await createOrbiter({
-      constellation,
-    });
-
-    await constellation.ajouterDispositif({
-      idDispositif: argv.device
+    
+    const config = await getConfig({
+      dir: argv.dir
     })
 
-    await constellation.fermer();
-    process.exit(0);
+    if (configIsComplete(config)) {
+      const constellation = créerConstellation({
+        dossier: argv.dir,
+      });
+  
+      await constellation.ajouterDispositif({
+        idDispositif: argv.device
+      })
+      console.log(chalk.green("Device added succesfully."))
+      await constellation.fermer();
+      process.exit(0);
+    } else {
+      console.log(chalk.red("Orbiter is not properly configured. Run `orb config` first."));
+    }
   },
 
   )
