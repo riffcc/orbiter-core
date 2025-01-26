@@ -17,6 +17,7 @@ import {
 import { createOrbiter } from "@/orbiter.js";
 import { configIsComplete, exportConfig, getConfig } from "@/config.js";
 import { ConfigMode } from "./types.js";
+import { DEFAULT_ORBITER_DIR } from "./consts.js";
 
 const MACHINE_PREFIX = "MACHINE MESSAGE:";
 
@@ -92,7 +93,7 @@ yargs(hideBin(process.argv))
       const wheel = ora(chalk.yellow(`Creating config`));
       wheel.start(chalk.yellow("Configuring Orbiter..."));
       const constellation = créerConstellation({
-        dossier: argv.dir || ".orbiter",
+        dossier: argv.dir || DEFAULT_ORBITER_DIR,
       });
 
       await createOrbiter({
@@ -111,7 +112,7 @@ yargs(hideBin(process.argv))
           alias: "d",
           describe: "The directory of the Orbiter node.",
           type: "string",
-          default: ".orbiter",
+          default: DEFAULT_ORBITER_DIR,
         })
         .option("format", {
           alias: "f",
@@ -157,7 +158,7 @@ yargs(hideBin(process.argv))
           alias: "d",
           describe: "The directory of the Orbiter node.",
           type: "string",
-          default: ".orbiter",
+          default: DEFAULT_ORBITER_DIR,
         })
         .option("machine", {
           alias: "m",
@@ -223,7 +224,7 @@ yargs(hideBin(process.argv))
         alias: "d",
         describe: "The directory of the Orbiter node.",
         type: "string",
-        default: ".orbiter",
+        default: DEFAULT_ORBITER_DIR,
       })
       .positional("device", {
         describe:

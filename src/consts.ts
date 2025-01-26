@@ -31,3 +31,4 @@ export const RELEASES_DB_TABLE_KEY = "releases";
 export const COLLECTIONS_DB_TABLE_KEY = "collections";
 
 export const CONFIG_FILE_NAME = ".orbiter-config.json";
+export const DEFAULT_ORBITER_DIR = ".orbiter";
