@@ -1767,7 +1767,7 @@ export const createOrbiter = async ({
   constellation: Constellation;
 }) => {
   const dir = await constellation.dossier()
-  const existingConfig = getConfig({
+  const existingConfig = await getConfig({
     dir,
   });
 
