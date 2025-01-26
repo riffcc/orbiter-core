@@ -14,9 +14,9 @@ import {
   créerConstellation,
 } from "@constl/ipa";
 
-import { createOrbiter } from "@/orbiter.js";
+import { createOrbiter, Orbiter } from "@/orbiter.js";
 import { configIsComplete, exportConfig, getConfig } from "@/config.js";
-import { ConfigMode } from "./types.js";
+import { ConfigMode, Release } from "./types.js";
 import { DEFAULT_ORBITER_DIR } from "./consts.js";
 
 const MACHINE_PREFIX = "MACHINE MESSAGE:";
@@ -259,6 +259,118 @@ yargs(hideBin(process.argv))
     }
   },
 
+  )
+  .command( ["upload-release <json-release> [--dir <dir>]"],
+    "Upload a new release",
+    (yargs) => {
+      return yargs
+        .option("dir", {
+          alias: "d",
+          describe: "The directory of the Orbiter node.",
+          type: "string",
+          default: DEFAULT_ORBITER_DIR,
+        })
+        .positional("json-release", {
+          describe:
+            "Path of release json file.",
+          type: "string",
+        });
+    },
+    async (argv) => {
+      if (!argv.jsonRelease) throw new Error("JSON Release path must be specified.");
+      const { existsSync, readFileSync } = await import("fs");
+
+      let releaseData: Release | undefined = undefined; 
+      if (!existsSync(argv.jsonRelease)) {
+        throw new Error("Invalid JSON Release path, no such file.");
+      } else {
+        try {
+          const data = readFileSync(argv.jsonRelease);
+          releaseData = JSON.parse(new TextDecoder().decode(data)) as Release;
+        } catch {
+          throw new Error("Error when try to parse json-")
+        }
+      }
+      const config = await getConfig({
+        dir: argv.dir
+      })
+
+      if (configIsComplete(config)) {
+        const constellation = créerConstellation({
+          dossier: argv.dir,
+        });
+    
+        const orbiter = new Orbiter({
+          ...config,
+          constellation
+        })
+
+        await orbiter.addRelease(releaseData)
+        console.log(chalk.green("Release uploaded succesfully."))
+        await constellation.fermer();
+        process.exit(0);
+      } else {
+        console.log(chalk.red("Orbiter is not properly configured. Run `orb config` first."));
+      }
+    },
+  )
+  .command( ["view-releases [--n-results <n-results> --dir <dir>]"],
+    "View site releases",
+    (yargs) => {
+      return yargs
+        .option("n-results", {
+          alias: "n",
+          describe: "The desired number of releases to fetch",
+          type: "number",
+          default: 5,
+        })
+        .option("dir", {
+          alias: "d",
+          describe: "The directory of the Orbiter node.",
+          type: "string",
+          default: DEFAULT_ORBITER_DIR,
+        })
+    },
+    async (argv) => {
+      const wheel = ora();
+      let forgetConnections: types.schémaFonctionOublier | undefined =
+      undefined;
+      const config = await getConfig({
+        dir: argv.dir
+      })
+
+      if (configIsComplete(config)) {
+        const constellation = créerConstellation({
+          dossier: argv.dir,
+        });
+    
+        const orbiter = new Orbiter({
+          ...config,
+          constellation
+        })
+        
+        process.stdin.on("data", async () => {
+          wheel.start(chalk.yellow("Closing Orbiter..."));
+          try {
+            await forgetConnections?.();
+            await constellation.fermer();
+          } finally {
+            wheel?.succeed(chalk.yellow("Orbiter closed."));
+            process.exit(0);
+          }
+        });
+        forgetConnections = await orbiter.listenForSiteReleases({
+          f: (rs) => {
+            logUpdate(
+              `Site releases:\n${rs.map(r => `${r.release.id}: ${r.release.release.contentName}`).join('\n')}\n\n${chalk.yellow('Press Enter to close.')}`
+            )
+          },
+          desiredNResults: argv.nResults
+        })
+      } else {
+        console.log(chalk.red("Orbiter is not properly configured. Run `orb config` first."));
+      }
+    },
   )
   .command(
     ["version"],
