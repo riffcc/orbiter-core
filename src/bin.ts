@@ -208,8 +208,9 @@ yargs(hideBin(process.argv))
           message: { type: "ORBITER READY" },
         });
       } else {
+        const peerId = await constellation.obtIdSFIP()
         wheel!.succeed(
-          chalk.yellow("Orbiter is running. Press `enter` to close."),
+          chalk.yellow(`Orbiter is running. Press \`enter\` to close.\nPeer id: ${peerId}`),
         );
         forgetConnections = await followConnections({ ipa: constellation });
       }
