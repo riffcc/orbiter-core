@@ -37,7 +37,7 @@ Use `orb config` to set up a lens and generate the required config. The `dir` op
 $ orb config [--dir "path/to/lens"]
 ```
 
-Use `orb lens` to run the configured lens on your machine.
+Use `orb run` to run the configured lens on your machine.
 
 ```sh
 $ orb run [--dir "path/to/lens"]
