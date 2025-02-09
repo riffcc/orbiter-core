@@ -7,7 +7,6 @@ import type {
   COLLECTIONS_METADATA_COLUMN,
   COLLECTIONS_NAME_COLUMN,
   COLLECTIONS_RELEASES_COLUMN,
-  COLLECTIONS_STATUS_COLUMN,
   COLLECTIONS_THUMBNAIL_COLUMN,
   FEATURED_RELEASES_END_TIME_COLUMN,
   FEATURED_RELEASES_RELEASE_ID_COLUMN,
@@ -18,7 +17,6 @@ import type {
   RELEASES_FILE_COLUMN,
   RELEASES_METADATA_COLUMN,
   RELEASES_NAME_COLUMN,
-  RELEASES_STATUS_COLUMN,
   RELEASES_THUMBNAIL_COLUMN,
   TRUSTED_SITES_NAME_COL,
   TRUSTED_SITES_SITE_ID_COL,
@@ -34,14 +32,12 @@ export const variableIdKeys = [
   "releasesAuthorVar",
   "releasesMetadataVar",
   "releasesCategoryVar",
-  "releasesStatusVar",
   "collectionsNameVar",
   "collectionsAuthorVar",
   "collectionsThumbnailVar",
   "collectionsMetadataVar",
   "collectionsCategoryVar",
   "collectionsReleasesVar",
-  "collectionsStatusVar",
   "featuredReleasesReleaseIdVar",
   "featuredReleasesStartTimeVar",
   "featuredReleasesEndTimeVar",
@@ -112,7 +108,6 @@ export type Release = {
   [RELEASES_THUMBNAIL_COLUMN]?: string;
   [RELEASES_METADATA_COLUMN]?: string;
   [RELEASES_CATEGORY_COLUMN]: string;
-  [RELEASES_STATUS_COLUMN]: string;
   [RELEASES_COVER_COLUMN]: string;
 };
 
@@ -128,7 +123,6 @@ export type Collection = {
   [COLLECTIONS_METADATA_COLUMN]?: string;
   [COLLECTIONS_CATEGORY_COLUMN]: string;
   [COLLECTIONS_RELEASES_COLUMN]: string;
-  [COLLECTIONS_STATUS_COLUMN]: string;
 };
 
 export type FeaturedRelease = {

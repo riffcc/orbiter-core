@@ -99,16 +99,16 @@ export const exportViteConfig = ({
   const { siteId, swarmId, variableIds } = config;
   let envFileText = '# The address below should be regenerated for each Orbiter site. If you are setting up an independent site, erase the value below and run the site in development mode (`pnpm dev`) to automatically regenerate. \n' +
   'VITE_SITE_ID=' + siteId +
+  '\n' +
+  'VITE_SWARM_ID=' + swarmId +
   '\n';
   const variableIdsList = Object.keys(variableIds).map(
     k => `VITE_${constantCase(k)}_ID=${variableIds[k as keyof VariableIds]}`,
   );
 
-  envFileText +=
-    '# These should ideally stay the same for all Orbiter site. Changing these will create a parallel network and thereby keep your lens from syncing and interacting with the main network.\n' +
-    'VITE_SWARM_ID=' + swarmId +
+  envFileText += '\n' +
+    '# These should ideally stay the same for all Orbiter sites. Changing these will create a parallel network and thereby keep your lens from syncing and interacting with the main network.\n' +
     '\n' + 
-    '\n' +
     variableIdsList.join('\n') +
     '\n'
   ;

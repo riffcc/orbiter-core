@@ -14,9 +14,10 @@ import {
   créerConstellation,
 } from "@constl/ipa";
 
-import { createOrbiter } from "@/orbiter.js";
-import { configIsComplete, exportConfig, getConfig } from "@/config.js";
+import { createOrbiter, setUpSite } from "@/orbiter.js";
+import { configIsComplete, exportConfig, getConfig, saveConfig } from "@/config.js";
 import { ConfigMode } from "./types.js";
+import { DEFAULT_ORBITER_DIR } from "./consts.js";
 
 const MACHINE_PREFIX = "MACHINE MESSAGE:";
 
@@ -86,18 +87,21 @@ yargs(hideBin(process.argv))
           alias: "d",
           describe: "The directory of the Orbiter node.",
           type: "string",
+          default: DEFAULT_ORBITER_DIR,
         });
     },
     async (argv) => {
-      const wheel = ora(chalk.yellow(`Creating config`));
-      wheel.start(chalk.yellow("Configuring Orbiter..."));
-      const constellation = créerConstellation({
-        dossier: argv.dir || ".orbiter",
-      });
+      const wheel = ora(chalk.yellow(`Starting Orbiter...`));
+      const dir = argv.dir || DEFAULT_ORBITER_DIR;
 
-      await createOrbiter({
-        constellation,
+      const constellation = créerConstellation({
+        dossier: dir,
       });
+      wheel.start(chalk.yellow("Configuring Orbiter..."));
+
+      const existingConfig = await getConfig({ dir });
+      const config = await setUpSite({ constellation, ...existingConfig });
+      await saveConfig({dir, config, mode: 'json'})
       await constellation.fermer();
       wheel?.succeed(chalk.yellow("Orbiter configured. Use `orb export-config` to export for use in static deployments."))
       process.exit(0);
@@ -111,7 +115,7 @@ yargs(hideBin(process.argv))
           alias: "d",
           describe: "The directory of the Orbiter node.",
           type: "string",
-          default: ".orbiter",
+          default: DEFAULT_ORBITER_DIR,
         })
         .option("format", {
           alias: "f",
@@ -157,7 +161,7 @@ yargs(hideBin(process.argv))
           alias: "d",
           describe: "The directory of the Orbiter node.",
           type: "string",
-          default: ".orbiter",
+          default: DEFAULT_ORBITER_DIR,
         })
         .option("machine", {
           alias: "m",
@@ -174,7 +178,8 @@ yargs(hideBin(process.argv))
       if (argv.machine) {
         sendMachineMessage({ message: { type: "STARTING ORBITER" } });
       } else {
-        wheel = ora(chalk.yellow(`Initialising Orbiter`)); // .start()
+        wheel = ora(); 
+        wheel.start(chalk.yellow(`Initialising Orbiter`))
       }
 
       const constellation = créerConstellation({
@@ -216,7 +221,7 @@ yargs(hideBin(process.argv))
       }
     },
   )
-  .command( ["authorise <device> [--dir <dir>]"],
+  .command( ["authorise <account> [--dir <dir>]"],
   "Authorise a new device",
   (yargs) => {
     return yargs
@@ -224,30 +229,36 @@ yargs(hideBin(process.argv))
         alias: "d",
         describe: "The directory of the Orbiter node.",
         type: "string",
-        default: ".orbiter",
+        default: DEFAULT_ORBITER_DIR,
       })
-      .positional("device", {
+      .positional("account", {
         describe:
-          "Id of the device to add to this account.",
+          "Id of the account to add to this account.",
         type: "string",
       });
   },
   async (argv) => {
-    if (!argv.device) throw new Error("Device must be specified.");
-
+    if (!argv.account) throw new Error("Account must be specified.");
+    
+    const wheel = ora(chalk.yellow(`Starting Orbiter`));
     const constellation = créerConstellation({
       dossier: argv.dir,
     });
 
-    await createOrbiter({
+    const {orbiter} = await createOrbiter({
       constellation,
     });
 
-    await constellation.ajouterDispositif({
-      idDispositif: argv.device
-    })
-
+    wheel.start(chalk.yellow("Authorising account..."));
+    await orbiter.inviteModerator({
+      userId: argv.account,
+      admin: true,
+    });
+    
+    wheel.start(chalk.yellow("Cleaning things up..."));
     await constellation.fermer();
+
+    wheel.succeed(chalk.yellow("All done!"));
     process.exit(0);
   },
 
