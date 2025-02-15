@@ -38,11 +38,12 @@ const followConnections = async ({ ipa }: { ipa: Constellation }) => {
     sfip: [],
     constellation: [],
   };
+  let now = Date.now();
 
   const fFinale = () => {
     const nIpfsConnections = connexions.sfip.length;
     const nConstellationConnections = connexions.constellation.filter(
-      (c) => c.infoMembre.idCompte !== connexions.monId && !c.vuÀ,
+      (c) => c.infoMembre.idCompte !== connexions.monId && c.vuÀ && (c.vuÀ - now),
     ).length;
 
     logUpdate(
@@ -51,6 +52,10 @@ const followConnections = async ({ ipa }: { ipa: Constellation }) => {
       ),
     );
   };
+
+  const timeout = setInterval(()=>{now = Date.now(); fFinale()})
+
+  const forgetNow = ()=>clearInterval(timeout)
 
   const forgetMyId = await ipa.suivreIdCompte({
     f: (id) => (connexions.monId = id),
@@ -70,6 +75,7 @@ const followConnections = async ({ ipa }: { ipa: Constellation }) => {
     }); // TODO: check specifically for Orbiter instances on the Constellation network
   return async () => {
     await Promise.all([
+      forgetNow(),
       forgetMyId(),
       forgetIpfsConnections(),
       forgetConstellationConnections(),
