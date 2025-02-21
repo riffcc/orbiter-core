@@ -25,6 +25,9 @@ const baseDir = url.fileURLToPath(new URL("..", import.meta.url));
 const packageJsonFile = path.join(baseDir, "./package.json");
 const packageJson = JSON.parse(fs.readFileSync(packageJsonFile, "utf8"));
 
+process.on('unhandledRejection', (reason, p) => {
+  console.error('Unhandled Rejection at:', p, 'reason:', reason);
+});
 const sendMachineMessage = ({ message }: { message: { type: string } }) => {
   console.log(MACHINE_PREFIX + JSON.stringify(message));
 };
@@ -48,7 +51,7 @@ const followConnections = async ({ ipa }: { ipa: Constellation }) => {
 
     logUpdate(
       chalk.yellow(
-        `Network connections: ${nIpfsConnections}\nConstellation nodes online: ${nConstellationConnections}`,
+        `Network connections: ${nIpfsConnections}\nConstellation nodes online: ${nConstellationConnections}\n${JSON.stringify(connexions.sfip, undefined, 2)}`,
       ),
     );
   };
