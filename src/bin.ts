@@ -195,7 +195,7 @@ yargs(hideBin(process.argv))
         dossier: argv.dir,
       });
 
-      await createOrbiter({
+      const { orbiter } = await createOrbiter({
         constellation,
       });
 
@@ -207,6 +207,7 @@ yargs(hideBin(process.argv))
         }
         try {
           await forgetConnections?.();
+          await orbiter.close();
           await constellation.fermer();
         } finally {
           if (argv.machine) {

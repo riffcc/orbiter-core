@@ -496,6 +496,8 @@ export class Orbiter {
   constellation: Constellation;
   events: TypedEmitter<OrbiterEvents>;
 
+  forgetFns: forgetFunction[] = [];
+
   constructor({
     siteId,
     swarmId,
@@ -515,6 +517,31 @@ export class Orbiter {
     this.variableIds = variableIds;
 
     this.constellation = constellation;
+    this._init();
+  }
+
+  async _init() {
+    await this.constellation.attendreInitialisée();
+    this.forgetFns.push(
+      await this.constellation.suivreBd({
+        id: this.siteId,
+        type: "keyvalue",
+        f: () => console.log("db opened"),
+        schéma: OrbiterSiteDbSchema,
+      }),
+    );
+    this.forgetFns.push(
+      await this.constellation.suivreBd({
+        id: this.swarmId,
+        type: "keyvalue",
+        f: () => console.log("db opened"),
+        schéma: OrbiterSiteDbSchema,
+      }),
+    );
+  }
+
+  async close() {
+    return await Promise.all(this.forgetFns);
   }
 
   async orbiterConfig(): Promise<{
