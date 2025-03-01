@@ -489,32 +489,55 @@ export const checkVariableIdsComplete = (
 
 export class Orbiter {
   siteId: string;
-  swarmId?: string;
 
   variableIds: VariableIds;
 
   constellation: Constellation;
   events: TypedEmitter<OrbiterEvents>;
+  forgetFns: forgetFunction[] = [];
+
 
   constructor({
     siteId,
-    swarmId,
     variableIds,
     constellation,
   }: {
     siteId: string;
-    swarmId?: string;
     variableIds: VariableIds;
     constellation: Constellation;
   }) {
     this.events = new TypedEmitter<OrbiterEvents>();
 
     this.siteId = siteId;
-    this.swarmId = swarmId;
   
     this.variableIds = variableIds;
 
     this.constellation = constellation;
+
+    this._init();
+  }
+
+  async _init() {
+    const {swarmId, modDbId} = await this.orbiterConfig();
+    // await this.constellation.attendreInitialisée()
+    this.forgetFns.push(await this.constellation.suivreBd({
+      id: this.siteId,
+      type: "keyvalue",
+      f: () => console.log('db opened'),
+      schéma: OrbiterSiteDbSchema,
+    }))
+    this.forgetFns.push(await this.constellation.suivreBd({
+      id: swarmId,
+      type: "keyvalue",
+      f: () => console.log('db opened'),
+      schéma: OrbiterSiteDbSchema,
+    }))
+    this.forgetFns.push(await this.constellation.suivreBd({
+      id: modDbId,
+      type: "keyvalue",
+      f: () => console.log('db opened'),
+      schéma: OrbiterSiteDbSchema,
+    }))
   }
 
   async orbiterConfig(): Promise<{
