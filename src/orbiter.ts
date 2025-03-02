@@ -203,6 +203,7 @@ export const setUpSite = async ({
   siteId?: string;
   variableIds?: PossiblyIncompleteVariableIds;
 }) => {
+
   // Variables for moderation database
   const trustedSitesSiteIdVar =
     variableIds.trustedSitesSiteIdVar ||

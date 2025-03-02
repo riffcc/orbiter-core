@@ -41,3 +41,5 @@ export const CONTENT_CATEGORIES = [
   "video",
   "other",
 ];
+
+export const DEFAULT_VARIABLE_IDS = { }
