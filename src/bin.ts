@@ -22,7 +22,7 @@ import {
   saveConfig,
 } from "@/config.js";
 import { ConfigMode } from "./types.js";
-import { CONFIG_FILE_NAME, DEFAULT_ORBITER_DIR } from "./consts.js";
+import { CONFIG_FILE_NAME, DEFAULT_ORBITER_DIR, DEFAULT_VARIABLE_IDS } from "./consts.js";
 import { confirm } from "@inquirer/prompts";
 
 const MACHINE_PREFIX = "MACHINE MESSAGE:";
@@ -106,6 +106,11 @@ yargs(hideBin(process.argv))
         describe: "The directory of the Orbiter node.",
         type: "string",
         default: DEFAULT_ORBITER_DIR,
+      })
+      .option("ignore-defaults", {
+        alias: "i",
+        description: "Ignore defaults and regenerate all configuration.",
+        type: "boolean",
       });
     },
     async (argv) => {
@@ -118,6 +123,8 @@ yargs(hideBin(process.argv))
       wheel.start(chalk.yellow("Configuring Orbiter..."));
 
       const existingConfig = await getConfig({ dir });
+      if (!argv.ignoreDefaults)
+        existingConfig.variableIds = {...DEFAULT_VARIABLE_IDS, ...existingConfig.variableIds}
       const config = await setUpSite({ constellation, ...existingConfig });
       await saveConfig({ dir, config, mode: "json" });
       await constellation.fermer();
