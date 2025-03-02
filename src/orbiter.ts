@@ -4,6 +4,7 @@ import { Lock } from "semaphore-async-await";
 
 import type { Constellation, bds, tableaux, types } from "@constl/ipa";
 import {
+  faisRien,
   ignorerNonDéfinis,
   suivreBdDeFonction,
   uneFois,
@@ -202,7 +203,6 @@ export const setUpSite = async ({
   siteId?: string;
   variableIds?: PossiblyIncompleteVariableIds;
 }) => {
-  console.log("set up site", siteId, variableIds)
   // Variables for moderation database
   const trustedSitesSiteIdVar =
     variableIds.trustedSitesSiteIdVar ||
@@ -338,13 +338,11 @@ export const setUpSite = async ({
   }
 
   // Swarm ID for site
-  console.log("ici", siteId)
   let swarmId = siteId ? await constellation.orbite.appliquerFonctionBdOrbite({
     idBd: siteId,
     fonction: "get",
     args: ["swarmId"],
   }) : undefined;
-  console.log({swarmId})
   if (!swarmId) {
     swarmId = await constellation.nuées.créerNuée({});
 
@@ -386,7 +384,6 @@ export const setUpSite = async ({
     fonction: "get",
     args: ["modDb"],
   }) : undefined;
-  console.log({modDbId})
   if (!modDbId)
     modDbId = await constellation.bds.créerBdDeSchéma({
       schéma: {
@@ -534,7 +531,7 @@ export class Orbiter {
       await this.constellation.suivreBd({
         id: this.siteId,
         type: "keyvalue",
-        f: () => console.log("db opened"),
+        f: faisRien,
         schéma: OrbiterSiteDbSchema,
       }),
     );
@@ -542,7 +539,7 @@ export class Orbiter {
       await this.constellation.suivreBd({
         id: swarmId,
         type: "keyvalue",
-        f: () => console.log("db opened"),
+        f: faisRien,
         schéma: OrbiterSiteDbSchema,
       }),
     );
@@ -550,7 +547,7 @@ export class Orbiter {
       await this.constellation.suivreBd({
         id: modDbId,
         type: "keyvalue",
-        f: () => console.log("db opened"),
+        f: faisRien,
         schéma: OrbiterSiteDbSchema,
       }),
     );

@@ -202,12 +202,11 @@ yargs(hideBin(process.argv))
           describe: "The config file to import.",
           type: "string",
         })
-        .option("regen-site", {
-          alias: "rg",
+        .option("same-site", {
+          alias: "s",
           describe:
-            "Whether to generate a new site id controlled by this Orbiter node.",
+            "Whether to keep the same site id or else generate a new site id controlled by this Orbiter node.",
           type: "boolean",
-          default: true,
         });
     },
     async (argv) => {
@@ -229,7 +228,7 @@ yargs(hideBin(process.argv))
           process.exit(0);
         }
       }
-      fs.writeFileSync(configFilePath, JSON.stringify(config));
+      fs.writeFileSync(configFilePath, JSON.stringify(config, undefined, 2));
     },
   )
   .command(
