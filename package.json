@@ -65,10 +65,12 @@
   },
   "dependencies": {
     "@constl/utils-ipa": "^1.0.4",
+    "@inquirer/prompts": "^7.3.2",
     "@orbitdb/core": "^2.4.3",
     "chalk": "^5.4.1",
     "change-case": "^5.4.4",
     "deepcopy": "^2.1.0",
+    "dotenv": "^16.4.7",
     "ipa": "link:../constl/ipa",
     "lodash-es": "^4.17.21",
     "log-update": "^6.1.0",

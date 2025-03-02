@@ -39,9 +39,10 @@ export const getConfig = async ({
   const ajv = new Ajv();
   const validateConfig = ajv.compile(possiblyIncompleteOrbiterConfigSchema);
 
-  const { existsSync, readFileSync } = await import("fs");
+  const { existsSync, readFileSync, lstatSync } = await import("fs");
   const { join } = await import("path");
-  const configFilePath = join(dir, CONFIG_FILE_NAME);
+  const configFilePath = lstatSync(dir).isDirectory() ? join(dir, CONFIG_FILE_NAME) : dir;
+
   if (existsSync(configFilePath)) {
     const data = readFileSync(configFilePath);
     try {

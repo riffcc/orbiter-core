@@ -17,7 +17,7 @@ import {
 import { createOrbiter, setUpSite } from "@/orbiter.js";
 import { configIsComplete, exportConfig, getConfig, saveConfig } from "@/config.js";
 import { ConfigMode } from "./types.js";
-import { DEFAULT_ORBITER_DIR } from "./consts.js";
+import { CONFIG_FILE_NAME, DEFAULT_ORBITER_DIR } from "./consts.js";
 
 const MACHINE_PREFIX = "MACHINE MESSAGE:";
 
@@ -160,6 +160,46 @@ yargs(hideBin(process.argv))
         wheel.fail(chalk.red("Orbiter is not properly configured. Run `orb config` first."))
       }
     }
+  )
+  .command(["import-config [--dir <dir> --file <file> -regen-site]"], 
+    "Import Orbiter config", (yargs) => {
+      return yargs
+        .option("dir", {
+          alias: "d",
+          describe: "The directory of the Orbiter node.",
+          type: "string",
+          default: DEFAULT_ORBITER_DIR,
+        })
+        .option("file", {
+          alias: "f",
+          describe: "The config file to import.",
+          type: "string",
+        })
+        .option("regen-site", {
+          alias: "rg",
+          describe:
+            "Whether to generate a new site id controlled by this Orbiter node.",
+          type: "boolean",
+          default: true,
+        });
+    }, async (argv) => {
+      const { dir, file, regenSite } = argv;
+      if (!file) throw new Error("Configuration file to import must be specified.");
+
+      const config = await getConfig({dir: file});
+      if (regenSite) {
+        delete config.siteId;
+      };
+      const configFilePath = path.join(dir, CONFIG_FILE_NAME);
+      if (fs.existsSync(configFilePath)) {
+        const overwrite = confirm(`An Orbiter configuration file already exists at ${configFilePath}. Do you want to overwrite it?`)
+        if (!overwrite) {
+          console.log(chalk.red("Configuration file import was cancelled."))
+          process.exit(0);
+        }
+      }
+      fs.writeFileSync(configFilePath, JSON.stringify(config))
+    },
   )
   .command(
     ["run [-m] [--dir <dir>]"],
