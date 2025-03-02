@@ -23,6 +23,7 @@ import {
 } from "@/config.js";
 import { ConfigMode } from "./types.js";
 import { CONFIG_FILE_NAME, DEFAULT_ORBITER_DIR } from "./consts.js";
+import { confirm } from "@inquirer/prompts";
 
 const MACHINE_PREFIX = "MACHINE MESSAGE:";
 
@@ -220,9 +221,9 @@ yargs(hideBin(process.argv))
       }
       const configFilePath = path.join(dir, CONFIG_FILE_NAME);
       if (fs.existsSync(configFilePath)) {
-        const overwrite = confirm(
-          `An Orbiter configuration file already exists at ${configFilePath}. Do you want to overwrite it?`,
-        );
+        const overwrite = await confirm({
+          message: `An Orbiter configuration file already exists at ${configFilePath}. Do you want to overwrite it?`,
+        });
         if (!overwrite) {
           console.log(chalk.red("Configuration file import was cancelled."));
           process.exit(0);
