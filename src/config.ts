@@ -99,14 +99,11 @@ export const exportViteConfig = ({
 }: {
   config: OrbiterConfig;
 }): string => {
-  const { siteId, swarmId, variableIds } = config;
+  const { siteId, variableIds } = config;
   let envFileText =
     "# The address below should be regenerated for each Orbiter site. If you are setting up an independent site, erase the value below and run the site in development mode (`pnpm dev`) to automatically regenerate. \n" +
     "VITE_SITE_ID=" +
     siteId +
-    "\n" +
-    "VITE_SWARM_ID=" +
-    swarmId +
     "\n";
   const variableIdsList = Object.keys(variableIds).map(
     (k) => `VITE_${constantCase(k)}_ID=${variableIds[k as keyof VariableIds]}`,

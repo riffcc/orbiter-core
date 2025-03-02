@@ -50,7 +50,6 @@ export type PossiblyIncompleteVariableIds = Partial<VariableIds>;
 
 export type OrbiterConfig = {
   siteId: string;
-  swarmId: string;
   variableIds: VariableIds;
 };
 
@@ -70,7 +69,6 @@ export const possiblyIncompleteOrbiterConfigSchema: JSONSchemaType<PossiblyIncom
     type: "object",
     properties: {
       siteId: { type: "string", nullable: true },
-      swarmId: { type: "string", nullable: true },
       variableIds: {
         type: "object",
         nullable: true,
@@ -86,7 +84,6 @@ export const orbiterConfigSchema: JSONSchemaType<OrbiterConfig> = {
   type: "object",
   properties: {
     siteId: { type: "string" },
-    swarmId: { type: "string" },
     variableIds: {
       type: "object",
       properties: Object.fromEntries(
@@ -95,7 +92,7 @@ export const orbiterConfigSchema: JSONSchemaType<OrbiterConfig> = {
       required: variableIdKeys,
     },
   },
-  required: ["siteId", "swarmId", "variableIds"],
+  required: ["siteId", "variableIds"],
 };
 
 export type ConfigMode = "vite" | "json"; // Todo: add for other compilers?

@@ -57,7 +57,6 @@ type forgetFunction = () => Promise<void>;
 interface OrbiterEvents {
   "site configured": (args: {
     siteId: string;
-    swarmId: string;
     variableIds: VariableIds;
   }) => void;
 }
@@ -197,14 +196,13 @@ const getSwarmDbSchema = ({
 export const setUpSite = async ({
   constellation,
   siteId,
-  swarmId,
   variableIds = {},
 }: {
   constellation: Constellation;
   siteId?: string;
-  swarmId?: string;
   variableIds?: PossiblyIncompleteVariableIds;
 }) => {
+  console.log("set up site", siteId, variableIds)
   // Variables for moderation database
   const trustedSitesSiteIdVar =
     variableIds.trustedSitesSiteIdVar ||
@@ -340,6 +338,13 @@ export const setUpSite = async ({
   }
 
   // Swarm ID for site
+  console.log("ici", siteId)
+  let swarmId = siteId ? await constellation.orbite.appliquerFonctionBdOrbite({
+    idBd: siteId,
+    fonction: "get",
+    args: ["swarmId"],
+  }) : undefined;
+  console.log({swarmId})
   if (!swarmId) {
     swarmId = await constellation.nuées.créerNuée({});
 
@@ -376,52 +381,59 @@ export const setUpSite = async ({
     }
   }
 
-  const modDbId = await constellation.bds.créerBdDeSchéma({
-    schéma: {
-      licence: "ODbl-1_0",
-      tableaux: [
-        {
-          cols: [
-            {
-              idVariable: trustedSitesSiteIdVar,
-              idColonne: TRUSTED_SITES_SITE_ID_COL,
-            },
-            {
-              idVariable: trustedSitesNameVar,
-              idColonne: TRUSTED_SITES_NAME_COL,
-            },
-          ],
-          clef: TRUSTED_SITES_TABLE_KEY,
-        },
-        {
-          cols: [
-            {
-              idVariable: featuredReleasesReleaseIdVar,
-              idColonne: FEATURED_RELEASES_RELEASE_ID_COLUMN,
-            },
-            {
-              idVariable: featuredReleasesStartTimeVar,
-              idColonne: FEATURED_RELEASES_START_TIME_COLUMN,
-            },
-            {
-              idVariable: featuredReleasesEndTimeVar,
-              idColonne: FEATURED_RELEASES_END_TIME_COLUMN,
-            },
-          ],
-          clef: FEATURED_RELEASES_TABLE_KEY,
-        },
-        {
-          cols: [
-            {
-              idVariable: blockedReleasesReleaseIdVar,
-              idColonne: BLOCKED_RELEASES_RELEASE_ID_COLUMN,
-            },
-          ],
-          clef: BLOCKED_RELEASES_TABLE_KEY,
-        },
-      ],
-    },
-  });
+  let modDbId = siteId ? await constellation.orbite.appliquerFonctionBdOrbite({
+    idBd: siteId,
+    fonction: "get",
+    args: ["modDb"],
+  }) : undefined;
+  console.log({modDbId})
+  if (!modDbId)
+    modDbId = await constellation.bds.créerBdDeSchéma({
+      schéma: {
+        licence: "ODbl-1_0",
+        tableaux: [
+          {
+            cols: [
+              {
+                idVariable: trustedSitesSiteIdVar,
+                idColonne: TRUSTED_SITES_SITE_ID_COL,
+              },
+              {
+                idVariable: trustedSitesNameVar,
+                idColonne: TRUSTED_SITES_NAME_COL,
+              },
+            ],
+            clef: TRUSTED_SITES_TABLE_KEY,
+          },
+          {
+            cols: [
+              {
+                idVariable: featuredReleasesReleaseIdVar,
+                idColonne: FEATURED_RELEASES_RELEASE_ID_COLUMN,
+              },
+              {
+                idVariable: featuredReleasesStartTimeVar,
+                idColonne: FEATURED_RELEASES_START_TIME_COLUMN,
+              },
+              {
+                idVariable: featuredReleasesEndTimeVar,
+                idColonne: FEATURED_RELEASES_END_TIME_COLUMN,
+              },
+            ],
+            clef: FEATURED_RELEASES_TABLE_KEY,
+          },
+          {
+            cols: [
+              {
+                idVariable: blockedReleasesReleaseIdVar,
+                idColonne: BLOCKED_RELEASES_RELEASE_ID_COLUMN,
+              },
+            ],
+            clef: BLOCKED_RELEASES_TABLE_KEY,
+          },
+        ],
+      },
+    });
 
   const completeVariableIds: VariableIds = {
     // Federation stuff
@@ -474,7 +486,6 @@ export const setUpSite = async ({
 
   return {
     siteId,
-    swarmId,
     variableIds: completeVariableIds,
   };
 };
