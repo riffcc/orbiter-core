@@ -7,7 +7,7 @@ import {
   type PossiblyIncompleteOrbiterConfig,
 } from "./types.js";
 
-import {constantCase} from 'change-case';
+import { constantCase } from "change-case";
 import {
   isBrowser,
   isElectronRenderer,
@@ -20,7 +20,7 @@ import { CONFIG_FILE_NAME } from "./consts.js";
 
 export const configIsComplete = (config: unknown): config is OrbiterConfig => {
   const ajv = new Ajv();
-  const validateCompleteConfig = ajv.compile(orbiterConfigSchema)
+  const validateCompleteConfig = ajv.compile(orbiterConfigSchema);
 
   if (validateCompleteConfig(config)) return true;
   return false;
@@ -41,7 +41,9 @@ export const getConfig = async ({
 
   const { existsSync, readFileSync, lstatSync } = await import("fs");
   const { join } = await import("path");
-  const configFilePath = lstatSync(dir).isDirectory() ? join(dir, CONFIG_FILE_NAME) : dir;
+  const configFilePath = lstatSync(dir).isDirectory()
+    ? join(dir, CONFIG_FILE_NAME)
+    : dir;
 
   if (existsSync(configFilePath)) {
     const data = readFileSync(configFilePath);
@@ -88,7 +90,7 @@ export const exportConfig = ({
   mode: ConfigMode;
 }): string => {
   if (mode === "vite") return exportViteConfig({ config });
-  else if (mode === 'json') return exportJsonConfig({ config });
+  else if (mode === "json") return exportJsonConfig({ config });
   else throw new Error(`Unknown exportation mode ${mode}.`);
 };
 
@@ -98,28 +100,31 @@ export const exportViteConfig = ({
   config: OrbiterConfig;
 }): string => {
   const { siteId, swarmId, variableIds } = config;
-  let envFileText = '# The address below should be regenerated for each Orbiter site. If you are setting up an independent site, erase the value below and run the site in development mode (`pnpm dev`) to automatically regenerate. \n' +
-  'VITE_SITE_ID=' + siteId +
-  '\n' +
-  'VITE_SWARM_ID=' + swarmId +
-  '\n';
+  let envFileText =
+    "# The address below should be regenerated for each Orbiter site. If you are setting up an independent site, erase the value below and run the site in development mode (`pnpm dev`) to automatically regenerate. \n" +
+    "VITE_SITE_ID=" +
+    siteId +
+    "\n" +
+    "VITE_SWARM_ID=" +
+    swarmId +
+    "\n";
   const variableIdsList = Object.keys(variableIds).map(
-    k => `VITE_${constantCase(k)}_ID=${variableIds[k as keyof VariableIds]}`,
+    (k) => `VITE_${constantCase(k)}_ID=${variableIds[k as keyof VariableIds]}`,
   );
 
-  envFileText += '\n' +
-    '# These should ideally stay the same for all Orbiter sites. Changing these will create a parallel network and thereby keep your lens from syncing and interacting with the main network.\n' +
-    '\n' + 
-    variableIdsList.join('\n') +
-    '\n'
-  ;
+  envFileText +=
+    "\n" +
+    "# These should ideally stay the same for all Orbiter sites. Changing these will create a parallel network and thereby keep your lens from syncing and interacting with the main network.\n" +
+    "\n" +
+    variableIdsList.join("\n") +
+    "\n";
   return envFileText;
 };
 
 export const exportJsonConfig = ({
-    config,
-  }: {
-    config: OrbiterConfig;
-  }): string => {
-    return JSON.stringify(config, undefined, 2);
-  }
+  config,
+}: {
+  config: OrbiterConfig;
+}): string => {
+  return JSON.stringify(config, undefined, 2);
+};

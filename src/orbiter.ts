@@ -192,7 +192,7 @@ const getSwarmDbSchema = ({
       },
     ],
   };
-}
+};
 
 export const setUpSite = async ({
   constellation,
@@ -206,10 +206,11 @@ export const setUpSite = async ({
   variableIds?: PossiblyIncompleteVariableIds;
 }) => {
   // Variables for moderation database
-  const trustedSitesSiteIdVar = variableIds.trustedSitesSiteIdVar ||
-  (await constellation.variables.créerVariable({
-    catégorie: "chaîneNonTraductible",
-  }));
+  const trustedSitesSiteIdVar =
+    variableIds.trustedSitesSiteIdVar ||
+    (await constellation.variables.créerVariable({
+      catégorie: "chaîneNonTraductible",
+    }));
   const trustedSitesNameVar =
     variableIds.trustedSitesNameVar ||
     (await constellation.variables.créerVariable({
@@ -322,11 +323,9 @@ export const setUpSite = async ({
   if (variableIds.collectionsCategoryVar) {
     collectionsCategoryVar = variableIds.collectionsCategoryVar;
   } else {
-    collectionsCategoryVar = await constellation.variables.créerVariable(
-      {
-        catégorie: "chaîneNonTraductible",
-      },
-    );
+    collectionsCategoryVar = await constellation.variables.créerVariable({
+      catégorie: "chaîneNonTraductible",
+    });
     // Specify allowed categories
     await constellation.variables.ajouterRègleVariable({
       idVariable: collectionsCategoryVar,
@@ -455,9 +454,11 @@ export const setUpSite = async ({
     collectionsCategoryVar,
   };
 
-  siteId = siteId || await constellation.créerBdIndépendante({
-    type: "keyvalue",
-  });
+  siteId =
+    siteId ||
+    (await constellation.créerBdIndépendante({
+      type: "keyvalue",
+    }));
 
   await constellation.orbite.appliquerFonctionBdOrbite({
     idBd: siteId,
@@ -476,16 +477,15 @@ export const setUpSite = async ({
     swarmId,
     variableIds: completeVariableIds,
   };
-}
+};
 
 export const checkVariableIdsComplete = (
   ids?: PossiblyIncompleteVariableIds,
 ): ids is VariableIds => {
   return (
-    !!ids &&
-    variableIdKeys.every((k) => Object.keys(ids).includes(k) && ids[k])
+    !!ids && variableIdKeys.every((k) => Object.keys(ids).includes(k) && ids[k])
   );
-}
+};
 
 export class Orbiter {
   siteId: string;
@@ -495,7 +495,6 @@ export class Orbiter {
   constellation: Constellation;
   events: TypedEmitter<OrbiterEvents>;
   forgetFns: forgetFunction[] = [];
-
 
   constructor({
     siteId,
@@ -509,7 +508,7 @@ export class Orbiter {
     this.events = new TypedEmitter<OrbiterEvents>();
 
     this.siteId = siteId;
-  
+
     this.variableIds = variableIds;
 
     this.constellation = constellation;
@@ -518,26 +517,32 @@ export class Orbiter {
   }
 
   async _init() {
-    const {swarmId, modDbId} = await this.orbiterConfig();
+    const { swarmId, modDbId } = await this.orbiterConfig();
     // await this.constellation.attendreInitialisée()
-    this.forgetFns.push(await this.constellation.suivreBd({
-      id: this.siteId,
-      type: "keyvalue",
-      f: () => console.log('db opened'),
-      schéma: OrbiterSiteDbSchema,
-    }))
-    this.forgetFns.push(await this.constellation.suivreBd({
-      id: swarmId,
-      type: "keyvalue",
-      f: () => console.log('db opened'),
-      schéma: OrbiterSiteDbSchema,
-    }))
-    this.forgetFns.push(await this.constellation.suivreBd({
-      id: modDbId,
-      type: "keyvalue",
-      f: () => console.log('db opened'),
-      schéma: OrbiterSiteDbSchema,
-    }))
+    this.forgetFns.push(
+      await this.constellation.suivreBd({
+        id: this.siteId,
+        type: "keyvalue",
+        f: () => console.log("db opened"),
+        schéma: OrbiterSiteDbSchema,
+      }),
+    );
+    this.forgetFns.push(
+      await this.constellation.suivreBd({
+        id: swarmId,
+        type: "keyvalue",
+        f: () => console.log("db opened"),
+        schéma: OrbiterSiteDbSchema,
+      }),
+    );
+    this.forgetFns.push(
+      await this.constellation.suivreBd({
+        id: modDbId,
+        type: "keyvalue",
+        f: () => console.log("db opened"),
+        schéma: OrbiterSiteDbSchema,
+      }),
+    );
   }
 
   async orbiterConfig(): Promise<{
@@ -545,7 +550,6 @@ export class Orbiter {
     swarmId: string;
     swarmSchema: bds.schémaSpécificationBd;
   }> {
-
     const modDbId = (await uneFois(
       async (fSuivi: types.schémaFonctionSuivi<string | undefined>) => {
         return await this.constellation.suivreBd({
@@ -627,7 +631,6 @@ export class Orbiter {
   }: {
     f: (sites?: tableaux.élémentDonnées<TrustedSite>[]) => void;
   }): Promise<forgetFunction> {
-
     return await suivreBdDeFonction({
       fRacine: async ({
         fSuivreRacine,
@@ -874,7 +877,6 @@ export class Orbiter {
       { release: ReleaseWithId; contributor: string; site: string }[]
     >;
   }): Promise<types.schémaFonctionOublier> {
-
     type SiteInfo = {
       blockedCids?: string[];
       entries?: { release: ReleaseWithId; contributor: string }[];
@@ -981,7 +983,6 @@ export class Orbiter {
       { collection: CollectionWithId; contributor: string; site: string }[]
     >;
   }): Promise<types.schémaFonctionOublier> {
-
     type SiteInfo = {
       entries?: { collection: CollectionWithId; contributor: string }[];
       fForget?: forgetFunction;
@@ -1073,7 +1074,6 @@ export class Orbiter {
   }: {
     f: types.schémaFonctionSuivi<FeaturedRelease[]>;
   }): Promise<types.schémaFonctionOublier> {
-
     // Todo: implement filtering of other sites' features according to our blocked CID list?
     type SiteInfo = {
       featuredReleases?: FeaturedRelease[];
@@ -1664,13 +1664,13 @@ export const createOrbiter = async ({
 }: {
   constellation: Constellation;
 }) => {
-  const dir = await constellation.dossier()
+  const dir = await constellation.dossier();
 
   const existingConfig = await getConfig({
     dir,
   });
   if (!configIsComplete(existingConfig)) {
-    throw new Error("Configure Orbiter with `orb config` first.")
+    throw new Error("Configure Orbiter with `orb config` first.");
   }
   const orbiter = new Orbiter({ constellation, ...existingConfig });
 

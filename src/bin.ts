@@ -15,7 +15,12 @@ import {
 } from "@constl/ipa";
 
 import { createOrbiter, setUpSite } from "@/orbiter.js";
-import { configIsComplete, exportConfig, getConfig, saveConfig } from "@/config.js";
+import {
+  configIsComplete,
+  exportConfig,
+  getConfig,
+  saveConfig,
+} from "@/config.js";
 import { ConfigMode } from "./types.js";
 import { CONFIG_FILE_NAME, DEFAULT_ORBITER_DIR } from "./consts.js";
 
@@ -25,8 +30,8 @@ const baseDir = url.fileURLToPath(new URL("..", import.meta.url));
 const packageJsonFile = path.join(baseDir, "./package.json");
 const packageJson = JSON.parse(fs.readFileSync(packageJsonFile, "utf8"));
 
-process.on('unhandledRejection', (reason, p) => {
-  console.error('Unhandled Rejection at:', p, 'reason:', reason);
+process.on("unhandledRejection", (reason, p) => {
+  console.error("Unhandled Rejection at:", p, "reason:", reason);
 });
 const sendMachineMessage = ({ message }: { message: { type: string } }) => {
   console.log(MACHINE_PREFIX + JSON.stringify(message));
@@ -46,7 +51,7 @@ const followConnections = async ({ ipa }: { ipa: Constellation }) => {
   const fFinale = () => {
     const nIpfsConnections = connexions.sfip.length;
     const nConstellationConnections = connexions.constellation.filter(
-      (c) => c.infoMembre.idCompte !== connexions.monId && c.vuÀ && (c.vuÀ - now),
+      (c) => c.infoMembre.idCompte !== connexions.monId && c.vuÀ && c.vuÀ - now,
     ).length;
 
     logUpdate(
@@ -56,9 +61,12 @@ const followConnections = async ({ ipa }: { ipa: Constellation }) => {
     );
   };
 
-  const timeout = setInterval(()=>{now = Date.now(); fFinale()})
+  const timeout = setInterval(() => {
+    now = Date.now();
+    fFinale();
+  });
 
-  const forgetNow = ()=>clearInterval(timeout)
+  const forgetNow = () => clearInterval(timeout);
 
   const forgetMyId = await ipa.suivreIdCompte({
     f: (id) => (connexions.monId = id),
@@ -88,16 +96,16 @@ const followConnections = async ({ ipa }: { ipa: Constellation }) => {
 
 yargs(hideBin(process.argv))
   .usage("Usage: $0 <command> [options]")
-  .command(["config [--dir <dir>]"],
+  .command(
+    ["config [--dir <dir>]"],
     "Configure Orbiter",
     (yargs) => {
-      return yargs
-        .option("dir", {
-          alias: "d",
-          describe: "The directory of the Orbiter node.",
-          type: "string",
-          default: DEFAULT_ORBITER_DIR,
-        });
+      return yargs.option("dir", {
+        alias: "d",
+        describe: "The directory of the Orbiter node.",
+        type: "string",
+        default: DEFAULT_ORBITER_DIR,
+      });
     },
     async (argv) => {
       const wheel = ora(chalk.yellow(`Starting Orbiter...`));
@@ -110,13 +118,18 @@ yargs(hideBin(process.argv))
 
       const existingConfig = await getConfig({ dir });
       const config = await setUpSite({ constellation, ...existingConfig });
-      await saveConfig({dir, config, mode: 'json'})
+      await saveConfig({ dir, config, mode: "json" });
       await constellation.fermer();
-      wheel?.succeed(chalk.yellow("Orbiter configured. Use `orb export-config` to export for use in static deployments."))
+      wheel?.succeed(
+        chalk.yellow(
+          "Orbiter configured. Use `orb export-config` to export for use in static deployments.",
+        ),
+      );
       process.exit(0);
-    }
+    },
   )
-  .command(["export-config [--format <format> --dir <dir> --out <out>]"],
+  .command(
+    ["export-config [--format <format> --dir <dir> --out <out>]"],
     "Export Orbiter config for use in UIs, etc.",
     (yargs) => {
       return yargs
@@ -128,13 +141,15 @@ yargs(hideBin(process.argv))
         })
         .option("format", {
           alias: "f",
-          describe: "The configuration format to output ('vite' and 'json' available for now).",
+          describe:
+            "The configuration format to output ('vite' and 'json' available for now).",
           type: "string",
-          default: 'vite'
+          default: "vite",
         })
         .option("out", {
           alias: "o",
-          describe: "The output env file in which to store the exported configuration.",
+          describe:
+            "The output env file in which to store the exported configuration.",
           type: "string",
         });
     },
@@ -142,27 +157,38 @@ yargs(hideBin(process.argv))
       const wheel = ora();
       wheel.start(chalk.yellow("Obtaining Orbiter config..."));
 
-      const outputFile = argv.out || (argv.format === 'json' ? 'config.json': '.env')
+      const outputFile =
+        argv.out || (argv.format === "json" ? "config.json" : ".env");
 
       const config = await getConfig({
-        dir: argv.dir
-      })
+        dir: argv.dir,
+      });
       if (configIsComplete(config)) {
         wheel.info(chalk.yellow("Exporting Orbiter config..."));
-      
+
         const exportedConfig = exportConfig({
           config,
-          mode: (argv.format as ConfigMode) || 'vite',
-        })
+          mode: (argv.format as ConfigMode) || "vite",
+        });
         fs.writeFileSync(outputFile, exportedConfig);
-        wheel.succeed(chalk.yellow(`Configuration exported to ${path.resolve(outputFile)}.`))
+        wheel.succeed(
+          chalk.yellow(
+            `Configuration exported to ${path.resolve(outputFile)}.`,
+          ),
+        );
       } else {
-        wheel.fail(chalk.red("Orbiter is not properly configured. Run `orb config` first."))
+        wheel.fail(
+          chalk.red(
+            "Orbiter is not properly configured. Run `orb config` first.",
+          ),
+        );
       }
-    }
+    },
   )
-  .command(["import-config [--dir <dir> --file <file> -regen-site]"], 
-    "Import Orbiter config", (yargs) => {
+  .command(
+    ["import-config [--dir <dir> --file <file> -regen-site]"],
+    "Import Orbiter config",
+    (yargs) => {
       return yargs
         .option("dir", {
           alias: "d",
@@ -182,23 +208,27 @@ yargs(hideBin(process.argv))
           type: "boolean",
           default: true,
         });
-    }, async (argv) => {
+    },
+    async (argv) => {
       const { dir, file, regenSite } = argv;
-      if (!file) throw new Error("Configuration file to import must be specified.");
+      if (!file)
+        throw new Error("Configuration file to import must be specified.");
 
-      const config = await getConfig({dir: file});
+      const config = await getConfig({ dir: file });
       if (regenSite) {
         delete config.siteId;
-      };
+      }
       const configFilePath = path.join(dir, CONFIG_FILE_NAME);
       if (fs.existsSync(configFilePath)) {
-        const overwrite = confirm(`An Orbiter configuration file already exists at ${configFilePath}. Do you want to overwrite it?`)
+        const overwrite = confirm(
+          `An Orbiter configuration file already exists at ${configFilePath}. Do you want to overwrite it?`,
+        );
         if (!overwrite) {
-          console.log(chalk.red("Configuration file import was cancelled."))
+          console.log(chalk.red("Configuration file import was cancelled."));
           process.exit(0);
         }
       }
-      fs.writeFileSync(configFilePath, JSON.stringify(config))
+      fs.writeFileSync(configFilePath, JSON.stringify(config));
     },
   )
   .command(
@@ -227,8 +257,8 @@ yargs(hideBin(process.argv))
       if (argv.machine) {
         sendMachineMessage({ message: { type: "STARTING ORBITER" } });
       } else {
-        wheel = ora(); 
-        wheel.start(chalk.yellow(`Initialising Orbiter`))
+        wheel = ora();
+        wheel.start(chalk.yellow(`Initialising Orbiter`));
       }
 
       const constellation = créerConstellation({
@@ -262,55 +292,56 @@ yargs(hideBin(process.argv))
           message: { type: "ORBITER READY" },
         });
       } else {
-        const peerId = await constellation.obtIdSFIP()
+        const peerId = await constellation.obtIdSFIP();
         wheel!.succeed(
-          chalk.yellow(`Orbiter is running. Press \`enter\` to close.\nPeer id: ${peerId}`),
+          chalk.yellow(
+            `Orbiter is running. Press \`enter\` to close.\nPeer id: ${peerId}`,
+          ),
         );
         forgetConnections = await followConnections({ ipa: constellation });
       }
     },
   )
-  .command( ["authorise <account> [--dir <dir>]"],
-  "Authorise a new device",
-  (yargs) => {
-    return yargs
-      .option("dir", {
-        alias: "d",
-        describe: "The directory of the Orbiter node.",
-        type: "string",
-        default: DEFAULT_ORBITER_DIR,
-      })
-      .positional("account", {
-        describe:
-          "Id of the account to add to this account.",
-        type: "string",
+  .command(
+    ["authorise <account> [--dir <dir>]"],
+    "Authorise a new device",
+    (yargs) => {
+      return yargs
+        .option("dir", {
+          alias: "d",
+          describe: "The directory of the Orbiter node.",
+          type: "string",
+          default: DEFAULT_ORBITER_DIR,
+        })
+        .positional("account", {
+          describe: "Id of the account to add to this account.",
+          type: "string",
+        });
+    },
+    async (argv) => {
+      if (!argv.account) throw new Error("Account must be specified.");
+
+      const wheel = ora(chalk.yellow(`Starting Orbiter`));
+      const constellation = créerConstellation({
+        dossier: argv.dir,
       });
-  },
-  async (argv) => {
-    if (!argv.account) throw new Error("Account must be specified.");
-    
-    const wheel = ora(chalk.yellow(`Starting Orbiter`));
-    const constellation = créerConstellation({
-      dossier: argv.dir,
-    });
 
-    const {orbiter} = await createOrbiter({
-      constellation,
-    });
+      const { orbiter } = await createOrbiter({
+        constellation,
+      });
 
-    wheel.start(chalk.yellow("Authorising account..."));
-    await orbiter.inviteModerator({
-      userId: argv.account,
-      admin: true,
-    });
-    
-    wheel.start(chalk.yellow("Cleaning things up..."));
-    await constellation.fermer();
+      wheel.start(chalk.yellow("Authorising account..."));
+      await orbiter.inviteModerator({
+        userId: argv.account,
+        admin: true,
+      });
 
-    wheel.succeed(chalk.yellow("All done!"));
-    process.exit(0);
-  },
+      wheel.start(chalk.yellow("Cleaning things up..."));
+      await constellation.fermer();
 
+      wheel.succeed(chalk.yellow("All done!"));
+      process.exit(0);
+    },
   )
   .command(
     ["version"],

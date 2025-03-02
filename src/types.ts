@@ -67,36 +67,35 @@ export type PossiblyIncompleteOrbiterConfig = RecursivePartial<OrbiterConfig>;
 
 export const possiblyIncompleteOrbiterConfigSchema: JSONSchemaType<PossiblyIncompleteOrbiterConfig> =
   {
-    type: 'object',
+    type: "object",
     properties: {
       siteId: { type: "string", nullable: true },
       swarmId: { type: "string", nullable: true },
       variableIds: {
-        type: 'object',
+        type: "object",
         nullable: true,
         properties: Object.fromEntries(
           variableIdKeys.map((v) => [v, { type: "string", nullable: true }]),
-        ) as { [P in keyof VariableIds]: { type: "string", nullable: true } },
+        ) as { [P in keyof VariableIds]: { type: "string"; nullable: true } },
         required: [],
       },
     },
     required: [],
   };
-export const orbiterConfigSchema: JSONSchemaType<OrbiterConfig> =
-{
-  type: 'object',
+export const orbiterConfigSchema: JSONSchemaType<OrbiterConfig> = {
+  type: "object",
   properties: {
     siteId: { type: "string" },
     swarmId: { type: "string" },
     variableIds: {
-      type: 'object',
+      type: "object",
       properties: Object.fromEntries(
         variableIdKeys.map((v) => [v, { type: "string" }]),
       ) as { [P in keyof VariableIds]: { type: "string" } },
-      required: variableIdKeys
+      required: variableIdKeys,
     },
   },
-  required: ['siteId', 'swarmId', 'variableIds']
+  required: ["siteId", "swarmId", "variableIds"],
 };
 
 export type ConfigMode = "vite" | "json"; // Todo: add for other compilers?
