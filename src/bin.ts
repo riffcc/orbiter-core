@@ -351,6 +351,91 @@ yargs(hideBin(process.argv))
     },
   )
   .command(
+    ["subscribe <siteId> [--siteName <siteName> --dir <dir>]"],
+    "Subscribe to a new site",
+    (yargs) => {
+      return yargs
+        .option("dir", {
+          alias: "d",
+          describe: "The directory of the Orbiter node.",
+          type: "string",
+          default: DEFAULT_ORBITER_DIR,
+        })
+        .option("siteName", {
+          describe: "Name for the site to subscribe.",
+          type: "string",
+        })
+        .positional("siteId", {
+          describe: "The site id to subscribe",
+          type: "string",
+        });
+    },
+    async (argv) => {
+      if (!argv.siteId) throw new Error("Site Id must be specified.");
+
+      const wheel = ora(chalk.yellow(`Starting Orbiter`));
+      const constellation = créerConstellation({
+        dossier: argv.dir,
+      });
+
+      const { orbiter } = await createOrbiter({
+        constellation,
+      });
+
+      wheel.start(chalk.yellow("Authorising account..."));
+      await orbiter.trustSite({
+        siteId: argv.siteId,
+        siteName: argv.siteName ?? argv.siteId,
+      });
+
+      wheel.start(chalk.yellow("Cleaning things up..."));
+      await constellation.fermer();
+
+      wheel.succeed(chalk.yellow("All done!"));
+      process.exit(0);
+    },
+  )
+  .command(
+    ["unsubscribe <siteId> [--dir <dir>]"],
+    "Unsubscribe to a site",
+    (yargs) => {
+      return yargs
+        .option("dir", {
+          alias: "d",
+          describe: "The directory of the Orbiter node.",
+          type: "string",
+          default: DEFAULT_ORBITER_DIR,
+        })
+        .positional("siteId", {
+          describe: "The site id to unsubscribe",
+          type: "string",
+        });
+    },
+    async (argv) => {
+      if (!argv.siteId) throw new Error("Site Id must be specified.");
+
+      const wheel = ora(chalk.yellow(`Starting Orbiter`));
+      const constellation = créerConstellation({
+        dossier: argv.dir,
+      });
+
+      const { orbiter } = await createOrbiter({
+        constellation,
+      });
+
+      wheel.start(chalk.yellow("Authorising account..."));
+      await orbiter.untrustSite({
+        siteId: argv.siteId
+      });
+
+      wheel.start(chalk.yellow("Cleaning things up..."));
+      await constellation.fermer();
+
+      wheel.succeed(chalk.yellow("All done!"));
+      process.exit(0);
+    },
+  )
+  .command(
     ["version"],
     "Get orbiter version",
     (yargs) => {
