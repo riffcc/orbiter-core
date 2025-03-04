@@ -1658,12 +1658,12 @@ export class Orbiter {
     });
   }
 
-  async untrustSite({ elementId }: { elementId: string }) {
+  async untrustSite({ siteId }: { siteId: string }) {
     const { modDbId } = await this.orbiterConfig();
     await this.constellation.bds.effacerÉlémentDeTableauParClef({
       idBd: modDbId,
       clefTableau: TRUSTED_SITES_TABLE_KEY,
-      idÉlément: elementId,
+      idÉlément: siteId,
     });
   }
 }
