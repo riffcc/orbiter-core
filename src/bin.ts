@@ -299,7 +299,7 @@ yargs(hideBin(process.argv))
           message: { type: "ORBITER READY" },
         });
       } else {
-        const peerId = await constellation.obtIdSFIP();
+        const peerId = await constellation.obtIdLibp2p();
         wheel!.succeed(
           chalk.yellow(
             `Orbiter is running. Press \`enter\` to close.\nPeer id: ${peerId}`,
