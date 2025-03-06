@@ -64,7 +64,7 @@
     "@constl/ipa": "^1.0.14"
   },
   "dependencies": {
-    "@constl/utils-ipa": "^1.0.4",
+    "@constl/utils-ipa": "^1.0.5",
     "@inquirer/prompts": "^7.3.2",
     "@orbitdb/core": "^2.4.3",
     "chalk": "^5.4.1",
