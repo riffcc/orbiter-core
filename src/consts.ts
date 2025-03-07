@@ -42,24 +42,24 @@ export const CONTENT_CATEGORIES = [
   "other",
 ];
 
-export const DEFAULT_VARIABLE_IDS = { 
-  trustedSitesSiteIdVar: "/orbitdb/zdpuAwapnjEwFwWSjXxzcvDypXXjfLGXSChHF6cUPgNUthEJf",
-  trustedSitesNameVar: "/orbitdb/zdpuAsuiXPa4go6gAnKmD33K18MLd4XTGTb5JhE1NyTaxuF25",
-  featuredReleasesReleaseIdVar: "/orbitdb/zdpuAxWTbRzgExEv8gyXqzqLSoQiTvtZ1a5jyp2xDrkE1wYTa",
-  featuredReleasesStartTimeVar: "/orbitdb/zdpuAtKvMTKcJoRNTczTK3dLVR3vMrP3eagFPUMbXJEkVxoLp",
-  featuredReleasesEndTimeVar: "/orbitdb/zdpuAnEuqR87b6ECMfAHHFw8yX4bgqNcNJefsKhvCWpmVzChX",
-  blockedReleasesReleaseIdVar: "/orbitdb/zdpuAyindpd8NqhQ4ao4ZpU8eFCUXkpCzn3A3jcF9P9YqEUnu",
-  releasesFileVar: "/orbitdb/zdpuAp5YGHgxsjs1QUJX2bYwLDK22V7Gf79m7SPeZhXy9LsiH",
-  releasesAuthorVar: "/orbitdb/zdpuAzqhnJQnoS7P1nbmdzJtQ8Vi4n2VLUWi1D7iPghvFkEm7",
-  releasesContentNameVar: "/orbitdb/zdpuB15wfgTPSazoxdbt5D9UMhTbnqkqBTXAo1uWe4F6B8514",
-  releasesThumbnailVar: "/orbitdb/zdpuAptC1ZQafFAqMoAqP1xPgNhQc8Rd3YCHLoq529d59RHek",
-  releasesCoverVar: "/orbitdb/zdpuAysVN5zt1utf4DqVS6w5L3SpAWK3TxxBe4pmnHHEquoVr",
-  releasesMetadataVar: "/orbitdb/zdpuArqWuk5ENQiUKUHYnqAP2dLApACKSLCtgY1hCK4AYRTHz",
-  releasesCategoryVar: "/orbitdb/zdpuAq1tNjCKNypDkdBU9ZxkjdR2xepYkDsTpm15MUyojgdfR",
-  collectionsAuthorVar: "/orbitdb/zdpuAtm5fMVa66nj2EW65bosvMZ2rsSvHgmPc8gUfzCVarxAL",
-  collectionsMetadataVar: "/orbitdb/zdpuB1c4D3BJu1rsNAbXJqaSZ8JL1QxswEiGHdnTAfQgWqGA9",
-  collectionsNameVar: "/orbitdb/zdpuAxJwMcwaZB9JQ6NkCUmKJYDuezuqWQjPfk7fxYBQZLorS",
-  collectionsThumbnailVar: "/orbitdb/zdpuB3DPsrNiifdTqhqUgvBCePqMYi1ftvHhq8mvuvDNvszcr",
-  collectionsReleasesVar: "/orbitdb/zdpuAu1KqKhQm5pXwPKqCvYFD7nRKmZaFHW19JuP7oBpYQeXm",
-  collectionsCategoryVar: "/orbitdb/zdpuAxhjVXv5gkjtDK8VoZ2jvst3LKCP97s7WuepTsyuyq1Xn"
- }
+export const DEFAULT_VARIABLE_IDS = {
+  trustedSitesSiteIdVar: "/orbitdb/zdpuAqPgAE5UgbJ8SSd7koJCecRMkYJKKx3At6fL9t6ZmTNca",
+  trustedSitesNameVar: "/orbitdb/zdpuAqPAYz9oL1mXfax8K7ZUKrxZP3L4qsHCrYYQi5dDaVLah",
+  featuredReleasesReleaseIdVar: "/orbitdb/zdpuAuzxxzA2juqaFW6Yo8iYsRRyoyQuwWBTQ7LGzxHCX1ZmC",
+  featuredReleasesStartTimeVar: "/orbitdb/zdpuAsCSFpQZEbF8hP6ach4ASbG2jteHeJxf7rbtJTdgccAoZ",
+  featuredReleasesEndTimeVar: "/orbitdb/zdpuAkpJiEUvdY6Kx7heJ3urkv1NGkGtojFGLDHn38UWFzN8S",
+  blockedReleasesReleaseIdVar: "/orbitdb/zdpuB1SsrYFo8NYoo2c2C96ADAFzgKwGddjaQ72b6ejxf3ido",
+  releasesFileVar: "/orbitdb/zdpuAu4czNuniw175zaMxNkNK1Mauuosb6fNRUUt1eBVSaBp8",
+  releasesAuthorVar: "/orbitdb/zdpuAoVLiyL6WF6fmemBWN64YgmcPJMNv6nEYTnsUM1GqAoaF",
+  releasesContentNameVar: "/orbitdb/zdpuArhubnAb2t9qwXHvrn6dykG7FrRjXPkm7vby5Y1imgTwo",
+  releasesThumbnailVar: "/orbitdb/zdpuAwrnXzcU17e2q81u3mnLU97dgJNSbih4oYxVNymBUGkGD",
+  releasesCoverVar: "/orbitdb/zdpuB2aUFoqSngVtyVTcm5cuSiUEi6ahhU32VM5qye7BaUCgE",
+  releasesMetadataVar: "/orbitdb/zdpuAvR5pEUTCw1z85T7vQLRXWjzc8B8T82E46LmRQ2qoXNH2",
+  releasesCategoryVar: "/orbitdb/zdpuAxmMAfRWyBUEMaMRNdFjVhf8Ar6CJkqqH92v43ygHSKyB",
+  collectionsAuthorVar: "/orbitdb/zdpuB2hBn1djqHPMWr2nSe9nMDYoyYcZPZRbhhrZz8GdYntci",
+  collectionsMetadataVar: "/orbitdb/zdpuB33FuHV3rKdhtcctGpUJmgvgEhCsw5YsL3oQPS9sAbpv5",
+  collectionsNameVar: "/orbitdb/zdpuAsFQfivfPQuN1NLovkjRk76TeS3aXUD9pkUjzHADttaZd",
+  collectionsThumbnailVar: "/orbitdb/zdpuB1g96BPtLL9UZ41DmKWGQLf3rtkXchVcq7Ef4xG9RUsYn",
+  collectionsReleasesVar: "/orbitdb/zdpuAsVgTRKW3oQVDzKpp7KE4nAiRM311rk5pqbrJKqYdiYd5",
+  collectionsCategoryVar: "/orbitdb/zdpuApRtBNSEyktLo34jdx8XngN8ieQFg7ksSkjbhAz87XaYf"
+}
