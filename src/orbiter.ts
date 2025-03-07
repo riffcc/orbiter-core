@@ -920,20 +920,20 @@ export class Orbiter {
       if (cancelled) return;
 
       const newSites = sitesList.filter(
-        (s) => !Object.keys(siteInfos).includes(s.siteName),
+        (s) => !Object.keys(siteInfos).includes(s.siteId),
       );
       const obsoleteSites = Object.keys(siteInfos).filter(
-        (s) => !sitesList.some((x) => x.siteName === s),
+        (s) => !sitesList.some((x) => x.siteId === s),
       );
 
       for (const site of newSites) {
         const fsForgetSite: types.schémaFonctionOublier[] = [];
 
-        const { siteName } = site;
-        siteInfos[siteName] = {};
+        const { siteId } = site;
+        siteInfos[siteId] = {};
         this.listenForSiteBlockedReleases({
           f: async (cids) => {
-            siteInfos[siteName].blockedCids = cids?.map((c) => c.cid);
+            siteInfos[siteId].blockedCids = cids?.map((c) => c.cid);
             await fFinal();
           },
           siteId: site.siteId,
@@ -941,13 +941,13 @@ export class Orbiter {
 
         this.listenForSiteReleases({
           f: async (entries) => {
-            siteInfos[siteName].entries = entries;
+            siteInfos[siteId].entries = entries;
             await fFinal();
           },
           siteId: site.siteId,
         }).then((fOublier) => fsForgetSite.push(fOublier));
 
-        siteInfos[siteName].fForget = async () => {
+        siteInfos[siteId].fForget = async () => {
           await Promise.all(fsForgetSite.map((f) => f()));
         };
         await fFinal();
@@ -1021,27 +1021,27 @@ export class Orbiter {
       if (cancelled) return;
 
       const newSites = sitesList.filter(
-        (s) => !Object.keys(siteInfos).includes(s.siteName),
+        (s) => !Object.keys(siteInfos).includes(s.siteId),
       );
       const obsoleteSites = Object.keys(siteInfos).filter(
-        (s) => !sitesList.some((x) => x.siteName === s),
+        (s) => !sitesList.some((x) => x.siteId === s),
       );
 
       for (const site of newSites) {
         const fsForgetSite: types.schémaFonctionOublier[] = [];
 
-        const { siteName } = site;
-        siteInfos[siteName] = {};
+        const { siteId } = site;
+        siteInfos[siteId] = {};
 
         this.listenForSiteCollections({
           f: async (entries) => {
-            siteInfos[siteName].entries = entries;
+            siteInfos[siteId].entries = entries;
             await fFinal();
           },
           siteId: site.siteId,
         }).then((fOublier) => fsForgetSite.push(fOublier));
 
-        siteInfos[siteName].fForget = async () => {
+        siteInfos[siteId].fForget = async () => {
           await Promise.all(fsForgetSite.map((f) => f()));
         };
         await fFinal();
@@ -1115,21 +1115,21 @@ export class Orbiter {
       if (cancelled) return;
 
       const newSites = sitesList.filter(
-        (s) => !Object.keys(siteInfos).includes(s.siteName),
+        (s) => !Object.keys(siteInfos).includes(s.siteId),
       );
       const obsoleteSites = Object.keys(siteInfos).filter(
-        (s) => !sitesList.some((x) => x.siteName === s),
+        (s) => !sitesList.some((x) => x.siteId === s),
       );
 
       for (const site of newSites) {
         const fsForgetSite: types.schémaFonctionOublier[] = [];
 
-        const { siteName } = site;
-        siteInfos[siteName] = {};
+        const { siteId } = site;
+        siteInfos[siteId] = {};
 
         this.listenForSiteFeaturedReleases({
           f: async (entries) => {
-            siteInfos[siteName].featuredReleases = entries.map(
+            siteInfos[siteId].featuredReleases = entries.map(
               (x) => x.featured,
             );
             await fFinal();
@@ -1137,7 +1137,7 @@ export class Orbiter {
           siteId: site.siteId,
         }).then((fOublier) => fsForgetSite.push(fOublier));
 
-        siteInfos[siteName].fForget = async () => {
+        siteInfos[siteId].fForget = async () => {
           await Promise.all(fsForgetSite.map((f) => f()));
         };
         await fFinal();
