@@ -14,9 +14,6 @@ importers:
       '@inquirer/prompts':
         specifier: ^7.3.2
         version: 7.3.2(@types/node@22.13.4)
-      '@orbitdb/core':
-        specifier: ^2.4.3
-        version: 2.4.3
       chalk:
         specifier: ^5.4.1
         version: 5.4.1
