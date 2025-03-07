@@ -49,8 +49,8 @@ importers:
         version: 17.7.2
     devDependencies:
       '@constl/ipa':
-        specifier: ^1.6.0
-        version: 1.6.0(react-native@0.73.6(@babel/core@7.26.9)(@babel/preset-env@7.24.4(@babel/core@7.26.9))(react@18.2.0))
+        specifier: ^1.6.1
+        version: 1.6.1(react-native@0.73.6(@babel/core@7.26.9)(@babel/preset-env@7.24.4(@babel/core@7.26.9))(react@18.2.0))
       '@constl/orbit-db-types':
         specifier: ^2.0.6
         version: 2.0.6
@@ -882,8 +882,8 @@ packages:
   '@constl/bohr-db@1.2.3':
     resolution: {integrity: sha512-IJXOqeMnJEOqD7DRNMowwPOY7bVKlTdQNu3DNn9zoSKj+fBzTXLzkxl4uRbKLu9vwWzjoXyxgvp2iw7vkt/amQ==}
 
-  '@constl/ipa@1.6.0':
-    resolution: {integrity: sha512-8+2hzngfLoWIt1AlqLJpueLNcrx7RpU67ucmxh10SKAwpnZxq9ZyFvcXuyygOoFHj6Gbxct/sAcJ6bOKrRBe8w==}
+  '@constl/ipa@1.6.1':
+    resolution: {integrity: sha512-3qqIja7G8hjHOW5WEjnXBnf32O2321g7T+ppiZTtTPxi1ds3iN3fW3OkAydPRpfr4QmSQJJWPKxEqP2Wm4mGEw==}
     engines: {node: '>=20'}
 
   '@constl/mandataire@3.0.3':
@@ -9143,7 +9143,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@constl/ipa@1.6.0(react-native@0.73.6(@babel/core@7.26.9)(@babel/preset-env@7.24.4(@babel/core@7.26.9))(react@18.2.0))':
+  '@constl/ipa@1.6.1(react-native@0.73.6(@babel/core@7.26.9)(@babel/preset-env@7.24.4(@babel/core@7.26.9))(react@18.2.0))':
     dependencies:
       '@chainsafe/libp2p-gossipsub': 14.1.0
       '@chainsafe/libp2p-noise': 16.0.3
