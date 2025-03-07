@@ -90,6 +90,8 @@
       "iso-constants",
       "msgpackr-extract"
     ],
-    "overrides": {}
+    "overrides": {
+      "@orbitdb/core": "github:benya7/orbitdb#fix/dial-protocol-retry"
+    }
   }
 }
