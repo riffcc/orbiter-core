@@ -87,6 +87,8 @@
       "@localfirst/crdx",
       "@localfirst/crypto",
       "@localfirst/shared",
+      "classic-level",
+      "esbuild",
       "iso-constants",
       "msgpackr-extract"
     ],
