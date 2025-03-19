@@ -146,20 +146,29 @@ export interface ReleaseMetadata {
   license?: string;
 }
 
-export interface MusicReleaseMetadata {
+export interface MusicReleaseMetadata extends ReleaseMetadata {
   tags?: string;
   musicBrainzID?: string;
   albumTitle?: string;
-  initialReleaseYear?: string;
+  releaseYear?: string;
   releaseType?: string;
   fileFormat?: string;
   bitrate?: string;
   mediaFormat?: string;
+  totalDuration?: string;
+  totalSongs?: string;
 }
 
-export interface MovieReleaseMetadata {
+export interface MovieReleaseMetadata extends ReleaseMetadata {
   posterCID?: string;
   TMDBID?: string;
   IMDBID?: string;
   releaseType?: string;
+  releaseYear?: string;
+  classification?: string;
+  duration?: string;
+}
+
+export interface TvShowReleaseMetadata extends ReleaseMetadata {
+  seasons?: string | number;
 }
