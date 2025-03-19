@@ -1359,9 +1359,9 @@ export class Orbiter {
     return await this.constellation.profil.effacerContact({ type, contact });
   }
 
-  async deleteAccount(): Promise<void> {
-    return await this.constellation.fermerCompte();
-  }
+  // async deleteAccount(): Promise<void> {
+  //   return await this.constellation.fermerCompte();
+  // }
 
   async listenForAccountId({
     f,
