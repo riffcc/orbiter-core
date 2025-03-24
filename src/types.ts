@@ -101,10 +101,10 @@ export type Release = {
   [RELEASES_NAME_COLUMN]: string;
   [RELEASES_FILE_COLUMN]: string;
   [RELEASES_AUTHOR_COLUMN]: string;
-  [RELEASES_THUMBNAIL_COLUMN]?: string;
-  [RELEASES_METADATA_COLUMN]?: string;
   [RELEASES_CATEGORY_COLUMN]: string;
-  [RELEASES_COVER_COLUMN]: string;
+  [RELEASES_THUMBNAIL_COLUMN]?: string;
+  [RELEASES_COVER_COLUMN]?: string;
+  [RELEASES_METADATA_COLUMN]?: string;
 };
 
 export type ReleaseWithId = {
