@@ -21,8 +21,8 @@ import {
   getConfig,
   saveConfig,
 } from "@/config.js";
-import { ConfigMode } from "./types.js";
-import { CONFIG_FILE_NAME, DEFAULT_ORBITER_DIR, DEFAULT_VARIABLE_IDS } from "./consts.js";
+import { ConfigMode, Release, ReleaseForUpload, releasesFileSchema } from "./types.js";
+import { CONFIG_FILE_NAME, DEFAULT_ORBITER_DIR, DEFAULT_VARIABLE_IDS, RELEASES_METADATA_COLUMN } from "./consts.js";
 import { confirm } from "@inquirer/prompts";
 
 const MACHINE_PREFIX = "MACHINE MESSAGE:";
@@ -428,6 +428,101 @@ yargs(hideBin(process.argv))
         siteId: argv.siteId
       });
 
+      wheel.start(chalk.yellow("Cleaning things up..."));
+      await constellation.fermer();
+
+      wheel.succeed(chalk.yellow("All done!"));
+      process.exit(0);
+    },
+  )
+  .command(
+    ["upload-releases <file> [--dir <dir>]"],
+    "Upload releases from a JSON File",
+    (yargs) => {
+      return yargs
+        .option("dir", {
+          alias: "d",
+          describe: "The directory of the Orbiter node.",
+          type: "string",
+          default: DEFAULT_ORBITER_DIR,
+        })
+        .positional("file", {
+          describe: "The file path of the JSON File with the releases data.",
+          type: "string",
+        });
+    },
+    async (argv) => {
+      if (!argv.file) throw new Error("JSON File path must be specified.");
+  
+      const wheel = ora(chalk.yellow(`Starting Orbiter`));
+      const constellation = créerConstellation({
+        dossier: argv.dir,
+      });
+  
+      const { orbiter } = await createOrbiter({
+        constellation,
+      });
+  
+      // Check if JSON file exists and read it
+      wheel.start(chalk.yellow("Reading and validating releases file..."));
+      const fs = await import("fs");
+      const path = await import("path");
+      const Ajv = (await import("ajv")).default;
+  
+      const filePath = path.resolve(argv.file);
+      if (!fs.existsSync(filePath)) {
+        wheel.fail(chalk.red(`File not found: ${filePath}`));
+        await constellation.fermer();
+        process.exit(1);
+      }
+  
+      let releasesData: ReleaseForUpload[];
+      try {
+        const fileContent = fs.readFileSync(filePath, "utf8");
+        const jsonData = JSON.parse(fileContent);
+  
+        // Validate with AJV
+        const ajv = new Ajv({ allErrors: true, allowUnionTypes: true });
+        const validate = ajv.compile(releasesFileSchema);
+        const valid = validate(jsonData);
+  
+        if (!valid) {
+          const errors = validate.errors?.map(err =>
+            `${err.instancePath}: ${err.message}`
+          ).join("\n");
+          throw new Error(`Validation failed:\n${errors}`);
+        }
+  
+        releasesData = jsonData as ReleaseForUpload[];
+      } catch (error) {
+        wheel.fail(chalk.red(`Error processing JSON file: ${error.message}`));
+        await constellation.fermer();
+        process.exit(1);
+      }
+  
+      // Upload releases
+      wheel.start(chalk.yellow(`Uploading ${releasesData.length} releases...`));
+      try {
+        await Promise.all(
+          releasesData.map(async (releaseData) => {
+            // Convert metadata object to string if present
+            const release: Release = {
+              ...releaseData,
+              [RELEASES_METADATA_COLUMN]: releaseData[RELEASES_METADATA_COLUMN]
+                ? JSON.stringify(releaseData[RELEASES_METADATA_COLUMN])
+                : undefined,
+            };
+            await orbiter.addRelease(release);
+          })
+        );
+        wheel.succeed(chalk.yellow(`Successfully uploaded ${releasesData.length} releases`));
+      } catch (error) {
+        wheel.fail(chalk.red(`Error uploading releases: ${error.message}`));
+        await constellation.fermer();
+        process.exit(1);
+      }
+  
+      // Cleanup
       wheel.start(chalk.yellow("Cleaning things up..."));
       await constellation.fermer();
 

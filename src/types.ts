@@ -1,6 +1,6 @@
 import { type JSONSchemaType } from "ajv";
 
-import type {
+import {
   BLOCKED_RELEASES_RELEASE_ID_COLUMN,
   COLLECTIONS_AUTHOR_COLUMN,
   COLLECTIONS_CATEGORY_COLUMN,
@@ -20,7 +20,7 @@ import type {
   RELEASES_THUMBNAIL_COLUMN,
   TRUSTED_SITES_NAME_COL,
   TRUSTED_SITES_SITE_ID_COL,
-} from "./consts";
+} from "./consts.js";
 
 export const variableIdKeys = [
   "trustedSitesSiteIdVar",
@@ -172,3 +172,33 @@ export interface MovieReleaseMetadata extends ReleaseMetadata {
 export interface TvShowReleaseMetadata extends ReleaseMetadata {
   seasons?: string | number;
 }
+export interface ReleaseForUpload extends Omit<Release, "metadata"> {
+  [RELEASES_METADATA_COLUMN]?: Record<string, unknown>;
+}
+
+export const releasesFileSchema: JSONSchemaType<ReleaseForUpload[]> = {
+  type: "array",
+  items: {
+    type: "object",
+    properties: {
+      [RELEASES_NAME_COLUMN]: { type: "string" },
+      [RELEASES_FILE_COLUMN]: { type: "string" },
+      [RELEASES_AUTHOR_COLUMN]: { type: "string" },
+      [RELEASES_CATEGORY_COLUMN]: { type: "string",
+      },
+      [RELEASES_THUMBNAIL_COLUMN]: { type: "string", nullable: true },
+      [RELEASES_COVER_COLUMN]: { type: "string", nullable: true },
+      [RELEASES_METADATA_COLUMN]: {
+        type: "object",
+        nullable: true,
+        additionalProperties: true,
+      },
+    },
+    required: [
+      RELEASES_NAME_COLUMN,
+      RELEASES_FILE_COLUMN,
+      RELEASES_AUTHOR_COLUMN,
+      RELEASES_CATEGORY_COLUMN,
+    ],
+  },
+};
