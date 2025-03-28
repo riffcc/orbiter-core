@@ -97,19 +97,19 @@ export const orbiterConfigSchema: JSONSchemaType<OrbiterConfig> = {
 
 export type ConfigMode = "vite" | "json"; // Todo: add for other compilers?
 
-export type Release = {
+export type Release<T = string> = {
   [RELEASES_NAME_COLUMN]: string;
   [RELEASES_FILE_COLUMN]: string;
   [RELEASES_AUTHOR_COLUMN]: string;
   [RELEASES_CATEGORY_COLUMN]: string;
   [RELEASES_THUMBNAIL_COLUMN]?: string;
   [RELEASES_COVER_COLUMN]?: string;
-  [RELEASES_METADATA_COLUMN]?: string;
+  [RELEASES_METADATA_COLUMN]?: T;
 };
 
-export type ReleaseWithId = {
-  release: Release;
+export type ReleaseWithId<T = string> = {
   id: string;
+  release: Release<T>;
 };
 
 export type Collection = {
@@ -172,11 +172,8 @@ export interface MovieReleaseMetadata extends ReleaseMetadata {
 export interface TvShowReleaseMetadata extends ReleaseMetadata {
   seasons?: string | number;
 }
-export interface ReleaseForUpload extends Omit<Release, "metadata"> {
-  [RELEASES_METADATA_COLUMN]?: Record<string, unknown>;
-}
 
-export const releasesFileSchema: JSONSchemaType<ReleaseForUpload[]> = {
+export const releasesFileSchema: JSONSchemaType<Release<Record<string, unknown>>[]> = {
   type: "array",
   items: {
     type: "object",

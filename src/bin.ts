@@ -21,7 +21,7 @@ import {
   getConfig,
   saveConfig,
 } from "@/config.js";
-import { ConfigMode, Release, ReleaseForUpload, releasesFileSchema } from "./types.js";
+import { ConfigMode, Release, releasesFileSchema } from "./types.js";
 import { CONFIG_FILE_NAME, DEFAULT_ORBITER_DIR, DEFAULT_VARIABLE_IDS, RELEASES_METADATA_COLUMN } from "./consts.js";
 import { confirm } from "@inquirer/prompts";
 
@@ -476,7 +476,7 @@ yargs(hideBin(process.argv))
         process.exit(1);
       }
   
-      let releasesData: ReleaseForUpload[];
+      let releasesData: Release<Record<string, unknown>>[];
       try {
         const fileContent = fs.readFileSync(filePath, "utf8");
         const jsonData = JSON.parse(fileContent);
@@ -493,7 +493,7 @@ yargs(hideBin(process.argv))
           throw new Error(`Validation failed:\n${errors}`);
         }
   
-        releasesData = jsonData as ReleaseForUpload[];
+        releasesData = jsonData as Release<Record<string, unknown>>[];
       } catch (error) {
         wheel.fail(chalk.red(`Error processing JSON file: ${error.message}`));
         await constellation.fermer();
