@@ -21,7 +21,11 @@ import {
   COLLECTIONS_NAME_COLUMN,
   COLLECTIONS_RELEASES_COLUMN,
   COLLECTIONS_THUMBNAIL_COLUMN,
-  CONTENT_CATEGORIES,
+  CONTENT_CATEGORIES_CATEGORY_ID,
+  CONTENT_CATEGORIES_DISPLAY_NAME,
+  CONTENT_CATEGORIES_METADATA_SCHEMA,
+  CONTENT_CATEGORIES_TABLE_KEY,
+  DEFAULT_CONTENT_CATEGORIES,
   FEATURED_RELEASES_END_TIME_COLUMN,
   FEATURED_RELEASES_RELEASE_ID_COLUMN,
   FEATURED_RELEASES_START_TIME_COLUMN,
@@ -48,10 +52,14 @@ import type {
   TrustedSite,
   VariableIds,
   PossiblyIncompleteVariableIds,
+  ContentCategory,
+  ContentCategoryMetadataField,
+  ContentCategoryWithId,
 } from "./types.js";
-import { variableIdKeys } from "./types.js";
+import { categoriesFileSchema, variableIdKeys } from "./types.js";
 import { removeUndefined } from "./utils.js";
 import { configIsComplete, getConfig } from "./config.js";
+import Ajv from "ajv";
 
 type forgetFunction = () => Promise<void>;
 
@@ -194,16 +202,35 @@ const getSwarmDbSchema = ({
   };
 };
 
+export const validateCategories = async (dir?: string) => {
+  let categoriesData = DEFAULT_CONTENT_CATEGORIES;
+  if (dir) {
+    const {readFileSync} = await import("fs")
+    const { join } = await import("path")
+    const categoriesPath = join(dir, "categories.json");
+    categoriesData = JSON.parse(readFileSync(categoriesPath, "utf8"));
+    const ajv = new Ajv();
+    const validate = ajv.compile(categoriesFileSchema);
+    const valid = validate(categoriesData);
+    if (!valid) {
+      console.error("Categories validation errors:", validate.errors);
+      throw new Error("Invalid categories data in categories.json");
+    }
+  }
+  return categoriesData;
+};
+
 export const setUpSite = async ({
   constellation,
+  categoriesData,
   siteId,
   variableIds = {},
 }: {
   constellation: Constellation;
+  categoriesData: ContentCategory<ContentCategoryMetadataField>[];
   siteId?: string;
-  variableIds?: PossiblyIncompleteVariableIds;
+  variableIds?: PossiblyIncompleteVariableIds
 }) => {
-
   // Variables for moderation database
   const trustedSitesSiteIdVar =
     variableIds.trustedSitesSiteIdVar ||
@@ -232,6 +259,21 @@ export const setUpSite = async ({
     }));
   const blockedReleasesReleaseIdVar =
     variableIds.blockedReleasesReleaseIdVar ||
+    (await constellation.variables.créerVariable({
+      catégorie: "chaîneNonTraductible",
+    }));
+    const contentCategoriesCategoryIdVar =
+    variableIds.contentCategoriesCategoryIdVar ||
+    (await constellation.variables.créerVariable({
+      catégorie: "chaîneNonTraductible",
+    }));
+    const contentCategoriesDisplayNameVar =
+    variableIds.contentCategoriesDisplayNameVar ||
+    (await constellation.variables.créerVariable({
+      catégorie: "chaîneNonTraductible",
+    }));
+    const contentCategoriesMetadataSchemaVar =
+    variableIds.contentCategoriesMetadataSchemaVar ||
     (await constellation.variables.créerVariable({
       catégorie: "chaîneNonTraductible",
     }));
@@ -267,28 +309,11 @@ export const setUpSite = async ({
     (await constellation.variables.créerVariable({
       catégorie: "chaîneNonTraductible",
     }));
-
-  // The release type variable is a bit more complicated, because we need to specify
-  // allowed categories to enforce.
-  let releasesCategoryVar: string;
-  if (variableIds.releasesCategoryVar) {
-    releasesCategoryVar = variableIds.releasesCategoryVar;
-  } else {
-    releasesCategoryVar = await constellation.variables.créerVariable({
-      catégorie: "chaîneNonTraductible",
-    });
-    // Specify allowed categories
-    await constellation.variables.ajouterRègleVariable({
-      idVariable: releasesCategoryVar,
-      règle: {
-        typeRègle: "valeurCatégorique",
-        détails: {
-          type: "fixe",
-          options: CONTENT_CATEGORIES,
-        },
-      },
-    });
-  }
+  const releasesCategoryVar =
+  variableIds.releasesCategoryVar ||
+  (await constellation.variables.créerVariable({
+    catégorie: "chaîneNonTraductible",
+  }));
 
   // Variables for collections table
   const collectionsNameVar =
@@ -316,27 +341,11 @@ export const setUpSite = async ({
     (await constellation.variables.créerVariable({
       catégorie: "fichier",
     }));
-
-  // Same thing for collections type variable.
-  let collectionsCategoryVar: string;
-  if (variableIds.collectionsCategoryVar) {
-    collectionsCategoryVar = variableIds.collectionsCategoryVar;
-  } else {
-    collectionsCategoryVar = await constellation.variables.créerVariable({
-      catégorie: "chaîneNonTraductible",
-    });
-    // Specify allowed categories
-    await constellation.variables.ajouterRègleVariable({
-      idVariable: collectionsCategoryVar,
-      règle: {
-        typeRègle: "valeurCatégorique",
-        détails: {
-          type: "fixe",
-          options: CONTENT_CATEGORIES,
-        },
-      },
-    });
-  }
+  const collectionsCategoryVar =
+    variableIds.collectionsCategoryVar ||
+    (await constellation.variables.créerVariable({
+      catégorie: "fichier",
+    }));
 
   // Swarm ID for site
   let swarmId = siteId ? await constellation.orbite.appliquerFonctionBdOrbite({
@@ -385,7 +394,7 @@ export const setUpSite = async ({
     fonction: "get",
     args: ["modDb"],
   }) : undefined;
-  if (!modDbId)
+  if (!modDbId) {
     modDbId = await constellation.bds.créerBdDeSchéma({
       schéma: {
         licence: "ODbl-1_0",
@@ -429,9 +438,38 @@ export const setUpSite = async ({
             ],
             clef: BLOCKED_RELEASES_TABLE_KEY,
           },
+          {
+            cols: [
+              {
+                idVariable: contentCategoriesCategoryIdVar,
+                idColonne: CONTENT_CATEGORIES_CATEGORY_ID,
+              },
+              {
+                idVariable: contentCategoriesDisplayNameVar,
+                idColonne: CONTENT_CATEGORIES_DISPLAY_NAME,
+              },
+              {
+                idVariable: contentCategoriesMetadataSchemaVar,
+                idColonne: CONTENT_CATEGORIES_METADATA_SCHEMA,
+              },
+            ],
+            clef: CONTENT_CATEGORIES_TABLE_KEY
+          }
         ],
       },
     });
+    for (const category of categoriesData) {
+      await constellation.bds.ajouterÉlémentÀTableauParClef({
+        idBd: modDbId,
+        clefTableau: CONTENT_CATEGORIES_TABLE_KEY,
+        vals: {
+          [CONTENT_CATEGORIES_CATEGORY_ID]: category.categoryId,
+          [CONTENT_CATEGORIES_DISPLAY_NAME]: category.displayName,
+          [CONTENT_CATEGORIES_METADATA_SCHEMA]: JSON.stringify(category.metadataSchema),
+        },
+      });
+    }
+  }
 
   const completeVariableIds: VariableIds = {
     // Federation stuff
@@ -445,6 +483,11 @@ export const setUpSite = async ({
 
     // blocked releases
     blockedReleasesReleaseIdVar,
+
+    // content categories
+    contentCategoriesCategoryIdVar,
+    contentCategoriesDisplayNameVar,
+    contentCategoriesMetadataSchemaVar,
 
     // releases
     releasesFileVar,
@@ -1664,6 +1707,62 @@ export class Orbiter {
       idBd: modDbId,
       clefTableau: TRUSTED_SITES_TABLE_KEY,
       idÉlément: siteId,
+    });
+  }
+
+  async addCategory(category: ContentCategory): Promise<string> {
+    const { modDbId } = await this.orbiterConfig();
+
+    const elementIds = await this.constellation.bds.ajouterÉlémentÀTableauParClef({
+      idBd: modDbId,
+      clefTableau: CONTENT_CATEGORIES_TABLE_KEY,
+      vals: {
+        [CONTENT_CATEGORIES_CATEGORY_ID]: category.categoryId,
+        [CONTENT_CATEGORIES_DISPLAY_NAME]: category.displayName,
+        [CONTENT_CATEGORIES_METADATA_SCHEMA]: category.metadataSchema,
+      },
+    });
+    return elementIds[0];
+  }
+
+  async editCategory({ elementId, category }: { elementId: string; category: Partial<ContentCategory> }): Promise<void> {
+    const { modDbId } = await this.orbiterConfig();
+
+    await this.constellation.bds.modifierÉlémentDeTableauParClef({
+      idBd: modDbId,
+      clefTableau: CONTENT_CATEGORIES_TABLE_KEY,
+      idÉlément: elementId,
+      vals: category,
+    });
+  }
+
+  async removeCategory(elementId: string): Promise<void> {
+    const { modDbId } = await this.orbiterConfig();
+
+    await this.constellation.bds.effacerÉlémentDeTableauParClef({
+      idBd: modDbId,
+      clefTableau: CONTENT_CATEGORIES_TABLE_KEY,
+      idÉlément: elementId,
+    });
+  }
+
+  async listenForContentCategories({
+    f,
+  }: {
+    f: types.schémaFonctionSuivi<ContentCategoryWithId[]>;
+  }): Promise<types.schémaFonctionOublier> {
+    const { modDbId } = await this.orbiterConfig();
+    
+    return await this.constellation.bds.suivreDonnéesDeTableauParClef<ContentCategory>({
+      idBd: modDbId,
+      clefTableau: CONTENT_CATEGORIES_TABLE_KEY,
+      f: async (categories) => {
+        const mappedCategories = categories.map((c) => ({
+          id: c.id,
+          contentCategory: c.données,
+        }));
+        await f(mappedCategories);
+      },
     });
   }
 }

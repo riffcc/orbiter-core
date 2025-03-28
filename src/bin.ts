@@ -14,7 +14,7 @@ import {
   créerConstellation,
 } from "@constl/ipa";
 
-import { createOrbiter, setUpSite } from "@/orbiter.js";
+import { createOrbiter, setUpSite, validateCategories } from "@/orbiter.js";
 import {
   configIsComplete,
   exportConfig,
@@ -125,7 +125,8 @@ yargs(hideBin(process.argv))
       const existingConfig = await getConfig({ dir });
       if (!argv.ignoreDefaults)
         existingConfig.variableIds = {...DEFAULT_VARIABLE_IDS, ...existingConfig.variableIds}
-      const config = await setUpSite({ constellation, ...existingConfig });
+      const categoriesData = await validateCategories();
+      const config = await setUpSite({ constellation, categoriesData,  ...existingConfig });
       await saveConfig({ dir, config, mode: "json" });
       await constellation.fermer();
       wheel?.succeed(

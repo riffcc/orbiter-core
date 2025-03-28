@@ -1,0 +1,131 @@
+[
+  {
+    "categoryId": "music",
+    "displayName": "Music",
+    "metadataSchema": {
+      "totalSongs": {
+        "type": "integer",
+        "description": "Total number of songs in this category"
+      },
+      "totalDuration": {
+        "type": "string",
+        "description": "Total duration of all songs (e.g., in HH:MM:SS format)"
+      },
+      "genres": {
+        "type": "array",
+        "description": "List of genres represented in this category"
+      },
+      "tags": {
+        "type": "string",
+        "description": "Tags associated with the music release"
+      },
+      "musicBrainzID": {
+        "type": "string",
+        "description": "MusicBrainz identifier for the release"
+      },
+      "albumTitle": {
+        "type": "string",
+        "description": "Title of the album"
+      },
+      "releaseYear": {
+        "type": "number",
+        "description": "Year of release"
+      },
+      "releaseType": {
+        "type": "string",
+        "description": "Type of music release",
+        "options": [
+          "Album",
+          "Soundtrack",
+          "EP",
+          "Anthology",
+          "Compilation",
+          "Single",
+          "Live Album",
+          "Remix",
+          "Bootleg",
+          "Interview",
+          "Mixtape",
+          "Demo",
+          "Concert Recording",
+          "DJ Mix",
+          "Unknown"
+        ]
+      },
+      "fileFormat": {
+        "type": "string",
+        "description": "Audio file format",
+        "options": ["MP3", "FLAC", "AAC", "AC3", "DTS"]
+      },
+      "bitrate": {
+        "type": "string",
+        "description": "Audio bitrate (e.g., 320kbps)"
+      },
+      "mediaFormat": {
+        "type": "string",
+        "description": "Physical media format if applicable",
+        "options": ["CD", "DVD", "Vinyl", "Soundboard", "SACD", "DAT", "WEB", "Blu-Ray"]
+      }
+    }
+  },
+  {
+    "categoryId": "video",
+    "displayName": "Videos",
+    "metadataSchema": {
+      "resolution": {
+        "type": "string",
+        "description": "Video resolution (e.g., 1920x1080)"
+      },
+      "format": {
+        "type": "string",
+        "description": "File format of the video (e.g., mp4, mov)"
+      },
+      "genres": {
+        "type": "array",
+        "description": "Genres associated with the video (e.g., action, drama)"
+      },
+      "tags": {
+        "type": "array",
+        "description": "User-defined tags for searchability (e.g., funny, tutorial)"
+      },
+      "posterCID": {
+        "type": "string",
+        "description": "Content ID for the movie poster"
+      },
+      "TMDBID": {
+        "type": "string",
+        "description": "The Movie Database identifier"
+      },
+      "IMDBID": {
+        "type": "string",
+        "description": "Internet Movie Database identifier"
+      },
+      "releaseType": {
+        "type": "string",
+        "description": "Type of movie release"
+      },
+      "releaseYear": {
+        "type": "number",
+        "description": "Year of release"
+      },
+      "classification": {
+        "type": "string",
+        "description": "Content rating/classification (e.g., PG-13)"
+      },
+      "duration": {
+        "type": "string",
+        "description": "Length of the movie"
+      }
+    }
+  },
+  {
+    "categoryId": "tvShow",
+    "displayName": "TV Shows",
+    "metadataSchema": {
+      "seasons": {
+        "type": "number",
+        "description": "Number of seasons in the TV show"
+      }
+    }
+  }
+]

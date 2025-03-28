@@ -8,6 +8,9 @@ import {
   COLLECTIONS_NAME_COLUMN,
   COLLECTIONS_RELEASES_COLUMN,
   COLLECTIONS_THUMBNAIL_COLUMN,
+  CONTENT_CATEGORIES_CATEGORY_ID,
+  CONTENT_CATEGORIES_DISPLAY_NAME,
+  CONTENT_CATEGORIES_METADATA_SCHEMA,
   FEATURED_RELEASES_END_TIME_COLUMN,
   FEATURED_RELEASES_RELEASE_ID_COLUMN,
   FEATURED_RELEASES_START_TIME_COLUMN,
@@ -42,6 +45,9 @@ export const variableIdKeys = [
   "featuredReleasesStartTimeVar",
   "featuredReleasesEndTimeVar",
   "blockedReleasesReleaseIdVar",
+  "contentCategoriesCategoryIdVar",
+  "contentCategoriesDisplayNameVar",
+  "contentCategoriesMetadataSchemaVar",
 ] as const;
 
 export type VariableIds = Record<(typeof variableIdKeys)[number], string>;
@@ -141,38 +147,6 @@ export type TrustedSite = {
   [TRUSTED_SITES_NAME_COL]: string;
 };
 
-export interface ReleaseMetadata {
-  description?: string;
-  license?: string;
-}
-
-export interface MusicReleaseMetadata extends ReleaseMetadata {
-  tags?: string;
-  musicBrainzID?: string;
-  albumTitle?: string;
-  releaseYear?: string;
-  releaseType?: string;
-  fileFormat?: string;
-  bitrate?: string;
-  mediaFormat?: string;
-  totalDuration?: string;
-  totalSongs?: string;
-}
-
-export interface MovieReleaseMetadata extends ReleaseMetadata {
-  posterCID?: string;
-  TMDBID?: string;
-  IMDBID?: string;
-  releaseType?: string;
-  releaseYear?: string;
-  classification?: string;
-  duration?: string;
-}
-
-export interface TvShowReleaseMetadata extends ReleaseMetadata {
-  seasons?: string | number;
-}
-
 export const releasesFileSchema: JSONSchemaType<Release<Record<string, unknown>>[]> = {
   type: "array",
   items: {
@@ -197,5 +171,54 @@ export const releasesFileSchema: JSONSchemaType<Release<Record<string, unknown>>
       RELEASES_AUTHOR_COLUMN,
       RELEASES_CATEGORY_COLUMN,
     ],
+  },
+};
+
+export type ContentCategory<T = string> = {
+  [CONTENT_CATEGORIES_CATEGORY_ID]: string;
+  [CONTENT_CATEGORIES_DISPLAY_NAME]: string;
+  [CONTENT_CATEGORIES_METADATA_SCHEMA]: T;
+};
+
+export type ContentCategoryMetadataField = Record<string, {
+  type: "string" | "number" | "array";
+  description: string;
+  options?: string[];
+}>;
+
+export type ContentCategoryWithId<T = string> = {
+  id: string;
+  contentCategory: ContentCategory<T>;
+};
+
+export const categoriesFileSchema: JSONSchemaType<ContentCategory<ContentCategoryMetadataField>[]> = {
+  type: "array",
+  items: {
+    type: "object",
+    properties: {
+      [CONTENT_CATEGORIES_CATEGORY_ID]: { type: "string" },
+      [CONTENT_CATEGORIES_DISPLAY_NAME]: { type: "string" },
+      [CONTENT_CATEGORIES_METADATA_SCHEMA]: {
+        type: "object",
+        additionalProperties: {
+          type: "object",
+          properties: {
+            type: {
+              type: "string",
+              enum: ["string", "number", "array"],
+            },
+            description: { type: "string" },
+            options: { 
+              type: "array",
+              items: { type: "string" },
+              nullable: true,
+            },
+          },
+          required: ["type", "description"],
+        },
+        required: [],
+      }
+    },
+    required: [CONTENT_CATEGORIES_CATEGORY_ID, CONTENT_CATEGORIES_DISPLAY_NAME, CONTENT_CATEGORIES_METADATA_SCHEMA],
   },
 };
