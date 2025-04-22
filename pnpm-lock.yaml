@@ -12,7 +12,7 @@ importers:
   .:
     dependencies:
       '@constl/utils-ipa':
-        specifier: ^2.0.1
+        specifier: 2.0.1
         version: 2.0.1
       '@inquirer/prompts':
         specifier: ^7.3.2
