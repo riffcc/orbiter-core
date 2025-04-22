@@ -24,8 +24,8 @@ importers:
         specifier: ^5.4.4
         version: 5.4.4
       constl-ipa-fork:
-        specifier: ^1.7.1
-        version: 1.7.1(react-native@0.73.6(@babel/core@7.26.9)(@babel/preset-env@7.24.4(@babel/core@7.26.9))(react@18.2.0))
+        specifier: ^1.7.2
+        version: 1.7.2(react-native@0.73.6(@babel/core@7.26.9)(@babel/preset-env@7.24.4(@babel/core@7.26.9))(react@18.2.0))
       deepcopy:
         specifier: ^2.1.0
         version: 2.1.0
@@ -3213,8 +3213,8 @@ packages:
     resolution: {integrity: sha512-ZqRXc+tZukToSNmh5C2iWMSoV3X1YUcPbqEM4DkEG5tNQXrQUZCNVGGv3IuicnkMtPfGf3Xtp8WCXs295iQ1pQ==}
     engines: {node: '>= 0.10.0'}
 
-  constl-ipa-fork@1.7.1:
-    resolution: {integrity: sha512-jSibqbvxFEuq5OCOYUZUclr0EtlDAfWcpe/RfNGWLvBdIlqSyPiBA4elycw5srPc3ZdNnKlrkQgV0KHfnWdObA==}
+  constl-ipa-fork@1.7.2:
+    resolution: {integrity: sha512-P3x6Yg46S/DcT+bsI3C8f5Q8sJjnohwgVqU8MWn47GiRQxW4KMw4w1eXLENAKOjtfFFaql6jhrMkAccfYkL8tA==}
     engines: {node: '>=20'}
 
   conventional-changelog-angular@8.0.0:
@@ -12755,7 +12755,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  constl-ipa-fork@1.7.1(react-native@0.73.6(@babel/core@7.26.9)(@babel/preset-env@7.24.4(@babel/core@7.26.9))(react@18.2.0)):
+  constl-ipa-fork@1.7.2(react-native@0.73.6(@babel/core@7.26.9)(@babel/preset-env@7.24.4(@babel/core@7.26.9))(react@18.2.0)):
     dependencies:
       '@chainsafe/libp2p-gossipsub': 14.1.1
       '@chainsafe/libp2p-noise': 16.0.3
