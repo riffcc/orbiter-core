@@ -255,7 +255,13 @@ yargs(hideBin(process.argv))
           describe:
             "Machine communication mode (useful for programmatic access).",
           type: "boolean",
-        });
+        })
+        /*.option("domains", {
+          alias: "dm",
+          describe: "The directory of the Orbiter node.",
+          type: "string",
+          default: DEFAULT_ORBITER_DIR,
+        });*/ // Todo - figure out how to have option for multiple domains with repeated argument (see yargs docs)
     },
     async (argv) => {
       let wheel: Ora | undefined = undefined;
@@ -271,7 +277,7 @@ yargs(hideBin(process.argv))
 
       const constellation = créerConstellation({
         dossier: argv.dir,
-        domaines: argv.domaines,
+        // domaines: argv.domains,  // Todo - see above
       });
 
       await createOrbiter({
