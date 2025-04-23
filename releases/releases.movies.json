@@ -42,5 +42,29 @@
       "duration": "1h 22m",
       "releaseYear": "2013"
     }
+  },
+  {
+    "contentName": "Cosmos Laundromat: First Cycle",
+    "file": "QmYVCbux1BK5Z2eJjwr5pJayZiQhp2TAUdCNUostkFkwee",
+    "category": "movie",
+    "author": "Blender Foundation",
+    "thumbnail": "Qmac7CQwC4ELP6zrVuZe3aaSEkkeAsnnXK9LmbbeuVGuja",
+    "metadata": {
+      "classification": "Unrated",
+      "duration": "12m",
+      "releaseYear": "2015"
+    }
+  },
+  {
+    "contentName": "Night of the Living Dead",
+    "file": "QmWeLCFA27vv91r6Jxu1C4PZTXj4mXpam6GGQzM6cS8FYD",
+    "category": "movie",
+    "author": "John Russo",
+    "thumbnail": "QmWKSLAZ5itbnG9ExSpVuAA57ftLVZNEdA7zEk4DpErFEs",
+    "metadata": {
+      "classification": "R",
+      "duration": "1h 35m",
+      "releaseYear": "1968"
+    }
   }
 ]
