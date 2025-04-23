@@ -6,7 +6,7 @@ import type { Constellation, bds, tableaux, types } from "constl-ipa-fork";
 import {
   faisRien,
   ignorerNonDéfinis,
-  suivreBdDeFonction,
+  suivreFonctionImbriquée,
   uneFois,
 } from "@constl/utils-ipa";
 import type { JSONSchemaType } from "ajv";
@@ -683,7 +683,7 @@ export class Orbiter {
   }: {
     f: (sites?: tableaux.élémentDonnées<TrustedSite>[]) => void;
   }): Promise<forgetFunction> {
-    return await suivreBdDeFonction({
+    return await suivreFonctionImbriquée({
       fRacine: async ({
         fSuivreRacine,
       }: {
@@ -724,7 +724,7 @@ export class Orbiter {
     f: (releases?: { cid: string; id: string }[]) => void;
     siteId?: string;
   }): Promise<forgetFunction> {
-    return await suivreBdDeFonction({
+    return await suivreFonctionImbriquée({
       fRacine: async ({
         fSuivreRacine,
       }: {
@@ -777,7 +777,7 @@ export class Orbiter {
     siteId?: string;
     desiredNResults?: number;
   }): Promise<types.schémaFonctionOublier> {
-    return await suivreBdDeFonction({
+    return await suivreFonctionImbriquée({
       fRacine: async ({
         fSuivreRacine,
       }: {
@@ -831,7 +831,7 @@ export class Orbiter {
     siteId?: string;
     desiredNResults?: number;
   }): Promise<types.schémaFonctionOublier> {
-    return await suivreBdDeFonction({
+    return await suivreFonctionImbriquée({
       fRacine: async ({
         fSuivreRacine,
       }: {
@@ -881,7 +881,7 @@ export class Orbiter {
     f: types.schémaFonctionSuivi<{ id: string; featured: FeaturedRelease }[]>;
     siteId?: string;
   }): Promise<types.schémaFonctionOublier> {
-    return await suivreBdDeFonction({
+    return await suivreFonctionImbriquée({
       fRacine: async ({
         fSuivreRacine,
       }: {

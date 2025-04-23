@@ -64,7 +64,7 @@
     "@constl/ipa": "^1.0.14"
   },
   "dependencies": {
-    "@constl/utils-ipa": "2.0.1",
+    "@constl/utils-ipa": "2.0.2",
     "@inquirer/prompts": "^7.4.1",
     "chalk": "^5.4.1",
     "change-case": "^5.4.4",
