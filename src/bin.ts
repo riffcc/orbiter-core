@@ -271,6 +271,7 @@ yargs(hideBin(process.argv))
 
       const constellation = créerConstellation({
         dossier: argv.dir,
+        domaines: argv.domaines,
       });
 
       await createOrbiter({
