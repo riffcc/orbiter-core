@@ -887,7 +887,7 @@ export class Orbiter {
       }: {
         fSuivreRacine: (nouvelIdBdCible?: string) => Promise<void>;
       }): Promise<forgetFunction> => {
-        return await this.followSiteSwarmId({
+        return await this.followSiteModDbId({
           f: fSuivreRacine,
           siteId,
         });
@@ -902,22 +902,18 @@ export class Orbiter {
           { id: string; featured: FeaturedRelease }[]
         >;
       }): Promise<forgetFunction> => {
-        const { fOublier } =
-          await this.constellation.nuées.suivreDonnéesTableauNuée<FeaturedRelease>(
-            {
-              idNuée: id,
-              clefTableau: FEATURED_RELEASES_TABLE_KEY,
-              f: (featured) =>
-                fSuivreBd(
-                  featured.map((x) => ({
-                    id: x.élément.id,
-                    featured: x.élément.données,
-                  })),
-                ),
-              clefsSelonVariables: false,
+        return await this.constellation.bds.suivreDonnéesDeTableauParClef<FeaturedRelease>(
+          {
+            idBd: id,
+            clefTableau: FEATURED_RELEASES_TABLE_KEY,
+            f: async (featured) => {
+              await fSuivreBd(featured.map((x) => ({
+                id: x.id,
+                featured: x.données,
+              })))
             },
-          );
-        return fOublier;
+          },
+        );
       },
     });
   }
