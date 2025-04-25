@@ -1432,6 +1432,24 @@ export class Orbiter {
     )[0];
   }
 
+  async editFeaturedRelease({
+    elementId,
+    featuredRelease,
+  }: {
+    elementId: string;
+    featuredRelease: Partial<FeaturedRelease>;
+  }): Promise<void> {
+    const { modDbId } = await this.orbiterConfig();
+
+    await this.constellation.bds.modifierÉlémentDeTableauParClef({
+      idBd: modDbId,
+      clefTableau: FEATURED_RELEASES_TABLE_KEY,
+      idÉlément: elementId,
+      vals: removeUndefined(featuredRelease),
+    });
+  }
+
+
   async followIsModerator({
     f,
     userId,
