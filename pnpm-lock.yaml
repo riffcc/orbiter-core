@@ -1968,8 +1968,8 @@ packages:
   '@orbitdb/core-types@1.0.14':
     resolution: {integrity: sha512-Mq+o9zMw8n1kD3eMOQZZ/XG9TnQ8HqUInmduBfMidPXFSQVrvVtTAxyFpHk+2+FMf6BTj1xhrAUCEZlcvYebeQ==}
 
-  '@orbitdb/core@https://codeload.github.com/benya7/orbitdb/tar.gz/60acc0c4c2c0f361db23f180e064f647c4c292a2':
-    resolution: {tarball: https://codeload.github.com/benya7/orbitdb/tar.gz/60acc0c4c2c0f361db23f180e064f647c4c292a2}
+  '@orbitdb/core@https://codeload.github.com/benya7/orbitdb/tar.gz/c07e42740e68708f81222ccfff368717e890fe9f':
+    resolution: {tarball: https://codeload.github.com/benya7/orbitdb/tar.gz/c07e42740e68708f81222ccfff368717e890fe9f}
     version: 2.5.0
     engines: {node: '>=20.0.0'}
 
@@ -9460,7 +9460,7 @@ snapshots:
 
   '@constl/bohr-db@1.2.3(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0))':
     dependencies:
-      '@orbitdb/core': https://codeload.github.com/benya7/orbitdb/tar.gz/60acc0c4c2c0f361db23f180e064f647c4c292a2
+      '@orbitdb/core': https://codeload.github.com/benya7/orbitdb/tar.gz/c07e42740e68708f81222ccfff368717e890fe9f
       '@orbitdb/core-types': 1.0.14
       '@orbitdb/feed-db': 1.1.2(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0))
       '@orbitdb/ordered-keyvalue-db': 1.1.2(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0))
@@ -9507,7 +9507,7 @@ snapshots:
       '@multiformats/mafmt': 12.1.6
       '@multiformats/multiaddr-matcher': 1.7.0
       '@noble/hashes': 1.8.0
-      '@orbitdb/core': https://codeload.github.com/benya7/orbitdb/tar.gz/60acc0c4c2c0f361db23f180e064f647c4c292a2
+      '@orbitdb/core': https://codeload.github.com/benya7/orbitdb/tar.gz/c07e42740e68708f81222ccfff368717e890fe9f
       '@orbitdb/feed-db': 1.1.2(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0))
       '@orbitdb/ordered-keyvalue-db': 1.1.2(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0))
       '@orbitdb/set-db': 1.1.2(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0))
@@ -9592,7 +9592,7 @@ snapshots:
       '@helia/block-brokers': 4.1.0
       '@libp2p/peer-id': 5.1.2
       '@libp2p/webrtc': 5.2.12(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0))
-      '@orbitdb/core': https://codeload.github.com/benya7/orbitdb/tar.gz/60acc0c4c2c0f361db23f180e064f647c4c292a2
+      '@orbitdb/core': https://codeload.github.com/benya7/orbitdb/tar.gz/c07e42740e68708f81222ccfff368717e890fe9f
       blockstore-core: 5.0.2
       blockstore-level: 2.0.1
       browserify-fs: 1.0.0
@@ -10473,7 +10473,7 @@ snapshots:
   '@lassi-js/kili@0.4.4':
     dependencies:
       '@constl/utils-ipa': 2.0.2
-      '@orbitdb/core': https://codeload.github.com/benya7/orbitdb/tar.gz/60acc0c4c2c0f361db23f180e064f647c4c292a2
+      '@orbitdb/core': https://codeload.github.com/benya7/orbitdb/tar.gz/c07e42740e68708f81222ccfff368717e890fe9f
       deepcopy: 2.1.0
 
   '@leichtgewicht/ip-codec@2.0.5': {}
@@ -11089,7 +11089,7 @@ snapshots:
 
   '@orbitdb/core-types@1.0.14': {}
 
-  '@orbitdb/core@https://codeload.github.com/benya7/orbitdb/tar.gz/60acc0c4c2c0f361db23f180e064f647c4c292a2':
+  '@orbitdb/core@https://codeload.github.com/benya7/orbitdb/tar.gz/c07e42740e68708f81222ccfff368717e890fe9f':
     dependencies:
       '@ipld/dag-cbor': 9.2.2
       '@libp2p/crypto': 5.1.1
@@ -11104,7 +11104,7 @@ snapshots:
 
   '@orbitdb/feed-db@1.1.2(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0))':
     dependencies:
-      '@orbitdb/core': https://codeload.github.com/benya7/orbitdb/tar.gz/60acc0c4c2c0f361db23f180e064f647c4c292a2
+      '@orbitdb/core': https://codeload.github.com/benya7/orbitdb/tar.gz/c07e42740e68708f81222ccfff368717e890fe9f
       helia: 5.3.0(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0))
     transitivePeerDependencies:
       - bufferutil
@@ -11114,7 +11114,7 @@ snapshots:
 
   '@orbitdb/ordered-keyvalue-db@1.1.2(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0))':
     dependencies:
-      '@orbitdb/core': https://codeload.github.com/benya7/orbitdb/tar.gz/60acc0c4c2c0f361db23f180e064f647c4c292a2
+      '@orbitdb/core': https://codeload.github.com/benya7/orbitdb/tar.gz/c07e42740e68708f81222ccfff368717e890fe9f
       helia: 5.3.0(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0))
     transitivePeerDependencies:
       - bufferutil
@@ -11124,7 +11124,7 @@ snapshots:
 
   '@orbitdb/set-db@1.1.2(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0))':
     dependencies:
-      '@orbitdb/core': https://codeload.github.com/benya7/orbitdb/tar.gz/60acc0c4c2c0f361db23f180e064f647c4c292a2
+      '@orbitdb/core': https://codeload.github.com/benya7/orbitdb/tar.gz/c07e42740e68708f81222ccfff368717e890fe9f
       helia: 5.3.0(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0))
     transitivePeerDependencies:
       - bufferutil
@@ -13099,7 +13099,7 @@ snapshots:
       '@multiformats/mafmt': 12.1.6
       '@multiformats/multiaddr-matcher': 1.7.0
       '@noble/hashes': 1.8.0
-      '@orbitdb/core': https://codeload.github.com/benya7/orbitdb/tar.gz/60acc0c4c2c0f361db23f180e064f647c4c292a2
+      '@orbitdb/core': https://codeload.github.com/benya7/orbitdb/tar.gz/c07e42740e68708f81222ccfff368717e890fe9f
       '@orbitdb/feed-db': 1.1.2(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0))
       '@orbitdb/ordered-keyvalue-db': 1.1.2(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0))
       '@orbitdb/set-db': 1.1.2(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0))
