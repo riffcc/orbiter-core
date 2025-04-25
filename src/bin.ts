@@ -48,7 +48,7 @@ const followConnections = async ({ ipa }: { ipa: Constellation }) => {
     constellation: [],
   };
   let now = Date.now();
-
+  const peerID = await ipa.obtIdLibp2p()
   const fFinale = () => {
     const nIpfsConnections = connexions.sfip.length;
     const nConstellationConnections = connexions.constellation.filter(
@@ -57,7 +57,7 @@ const followConnections = async ({ ipa }: { ipa: Constellation }) => {
 
     logUpdate(
       chalk.yellow(
-        `Network connections: ${nIpfsConnections}\nConstellation nodes online: ${nConstellationConnections}\n${JSON.stringify(connexions.sfip, undefined, 2)}`,
+        `Peer ID: ${peerID}\nNetwork connections: ${nIpfsConnections}\nConstellation nodes online: ${nConstellationConnections}\n${JSON.stringify(connexions.sfip, undefined, 2)}`,
       ),
     );
   };
