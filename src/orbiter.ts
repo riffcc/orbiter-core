@@ -1414,8 +1414,8 @@ export class Orbiter {
     endTime,
   }: {
     cid: string;
-    startTime: number;
-    endTime: number;
+    startTime: string;
+    endTime: string;
   }) {
     const { modDbId } = await this.orbiterConfig();
 
