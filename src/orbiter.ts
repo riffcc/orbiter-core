@@ -2,7 +2,7 @@ import { TypedEmitter } from "tiny-typed-emitter";
 
 import { Lock } from "semaphore-async-await";
 
-import type { Constellation, bds, tableaux, types } from "constl-ipa-fork";
+import { créerConstellation, type Constellation, type bds, type tableaux, type types } from "constl-ipa-fork";
 import {
   faisRien,
   ignorerNonDéfinis,
@@ -38,6 +38,7 @@ import {
   RELEASES_METADATA_COLUMN,
   RELEASES_NAME_COLUMN,
   RELEASES_THUMBNAIL_COLUMN,
+  RIFFCC_PROTOCOL,
   TRUSTED_SITES_NAME_COL,
   TRUSTED_SITES_SITE_ID_COL,
   TRUSTED_SITES_TABLE_KEY,
@@ -555,7 +556,7 @@ export class Orbiter {
   }: {
     siteId: string;
     variableIds: VariableIds;
-    constellation: Constellation;
+    constellation?: Constellation;
   }) {
     this.events = new TypedEmitter<OrbiterEvents>();
 
@@ -563,7 +564,11 @@ export class Orbiter {
 
     this.variableIds = variableIds;
 
-    this.constellation = constellation;
+    if (constellation) {
+      this.constellation = constellation;
+    } else {
+      this.constellation = créerConstellation({ protocoles: [RIFFCC_PROTOCOL] });
+    }
 
     this._init();
   }

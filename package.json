@@ -60,9 +60,6 @@
     "typescript-transform-paths": "^3.5.5",
     "wherearewe": "^2.0.1"
   },
-  "peerDependencies": {
-    "@constl/ipa": "^1.0.14"
-  },
   "dependencies": {
     "@constl/utils-ipa": "2.0.2",
     "@inquirer/prompts": "^7.4.1",

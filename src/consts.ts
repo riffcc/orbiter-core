@@ -194,3 +194,5 @@ export const DEFAULT_CONTENT_CATEGORIES: ContentCategory<ContentCategoryMetadata
     }
   }
 ]
+
+export const RIFFCC_PROTOCOL = '/riffcc/1.0.0';
