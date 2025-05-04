@@ -57,7 +57,7 @@ const followConnections = async ({ ipa }: { ipa: Constellation }) => {
 
     logUpdate(
       chalk.yellow(
-        `Peer ID: ${peerID}\nNetwork connections: ${nIpfsConnections}\nConstellation nodes online: ${nConstellationConnections}\n${JSON.stringify(connexions.sfip, undefined, 2)}`,
+        `Account ID: ${connexions.monId}\nPeer ID: ${peerID}\nNetwork connections: ${nIpfsConnections}\nConstellation nodes online: ${nConstellationConnections}\n${JSON.stringify(connexions.sfip, undefined, 2)}`,
       ),
     );
   };
