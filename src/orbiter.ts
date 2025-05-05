@@ -29,6 +29,7 @@ import {
   FEATURED_RELEASES_END_TIME_COLUMN,
   FEATURED_RELEASES_RELEASE_ID_COLUMN,
   FEATURED_RELEASES_START_TIME_COLUMN,
+  FEATURED_PROMOTED_COLUMN,
   FEATURED_RELEASES_TABLE_KEY,
   RELEASES_AUTHOR_COLUMN,
   RELEASES_CATEGORY_COLUMN,
@@ -258,6 +259,11 @@ export const setUpSite = async ({
     (await constellation.variables.créerVariable({
       catégorie: "horoDatage",
     }));
+    const featuredReleasesPromotedVar =
+    variableIds.featuredReleasesEndTimeVar ||
+    (await constellation.variables.créerVariable({
+      catégorie: "booléen",
+    }));
   const blockedReleasesReleaseIdVar =
     variableIds.blockedReleasesReleaseIdVar ||
     (await constellation.variables.créerVariable({
@@ -427,6 +433,10 @@ export const setUpSite = async ({
                 idVariable: featuredReleasesEndTimeVar,
                 idColonne: FEATURED_RELEASES_END_TIME_COLUMN,
               },
+              {
+                idVariable: featuredReleasesPromotedVar,
+                idColonne: FEATURED_PROMOTED_COLUMN,
+              },
             ],
             clef: FEATURED_RELEASES_TABLE_KEY,
           },
@@ -481,7 +491,8 @@ export const setUpSite = async ({
     featuredReleasesReleaseIdVar,
     featuredReleasesStartTimeVar,
     featuredReleasesEndTimeVar,
-
+    featuredReleasesPromotedVar,
+    
     // blocked releases
     blockedReleasesReleaseIdVar,
 
@@ -1417,10 +1428,12 @@ export class Orbiter {
     cid,
     startTime,
     endTime,
+    promoted
   }: {
     cid: string;
     startTime: string;
     endTime: string;
+    promoted: boolean;
   }) {
     const { modDbId } = await this.orbiterConfig();
 
@@ -1432,6 +1445,7 @@ export class Orbiter {
           [FEATURED_RELEASES_RELEASE_ID_COLUMN]: cid,
           [FEATURED_RELEASES_START_TIME_COLUMN]: startTime,
           [FEATURED_RELEASES_END_TIME_COLUMN]: endTime,
+          [FEATURED_PROMOTED_COLUMN]: promoted,
         },
       })
     )[0];

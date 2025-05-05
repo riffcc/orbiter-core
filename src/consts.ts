@@ -8,6 +8,7 @@ export const FEATURED_RELEASES_TABLE_KEY = "featuredReleases";
 export const FEATURED_RELEASES_RELEASE_ID_COLUMN = "releaseId";
 export const FEATURED_RELEASES_START_TIME_COLUMN = "startTime";
 export const FEATURED_RELEASES_END_TIME_COLUMN = "endTime";
+export const FEATURED_PROMOTED_COLUMN = "promoted";
 
 export const BLOCKED_RELEASES_TABLE_KEY = "blockedReleases";
 export const BLOCKED_RELEASES_RELEASE_ID_COLUMN = "releaseId";
@@ -44,6 +45,7 @@ export const DEFAULT_VARIABLE_IDS = {
   featuredReleasesReleaseIdVar: "/orbitdb/zdpuAuoH7hoTZvBuAxG667k5YMSZaCQXU8Y88CoRG57vjZLaZ",
   featuredReleasesStartTimeVar: "/orbitdb/zdpuArQnMwqU1jN9eZ9J6k8H1euLRF67qVkeWjU9NBTAf4HLQ",
   featuredReleasesEndTimeVar: "/orbitdb/zdpuArhQVb8NYLXu8oyEbKZmdwGmPWXACxrYBR49zGkGyo2NV",
+  featuredReleasesPromotedVar: "/orbitdb/zdpuArhQVb8NYLXu8oyEbKZmdwGmPWXACxrYBR49zGkGyo2NV",
   blockedReleasesReleaseIdVar: "/orbitdb/zdpuAkyAA7XiPurjxZ39b2s5Vt57Z5dqnr6TSgMap5wP1qYBi",
   contentCategoriesCategoryIdVar: "/orbitdb/zdpuAtrNCjNSKf8hBM6rrqC4prVvsNph3Wt7E4Y2W8pFvGDXx",
   contentCategoriesDisplayNameVar: "/orbitdb/zdpuAzKVn6Ep8feK8uCtu9GFJGPK2Z3mEmPcg2STKAuGEsKdz",

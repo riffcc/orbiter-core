@@ -11,6 +11,7 @@ import {
   CONTENT_CATEGORIES_CATEGORY_ID,
   CONTENT_CATEGORIES_DISPLAY_NAME,
   CONTENT_CATEGORIES_METADATA_SCHEMA,
+  FEATURED_PROMOTED_COLUMN,
   FEATURED_RELEASES_END_TIME_COLUMN,
   FEATURED_RELEASES_RELEASE_ID_COLUMN,
   FEATURED_RELEASES_START_TIME_COLUMN,
@@ -44,6 +45,7 @@ export const variableIdKeys = [
   "featuredReleasesReleaseIdVar",
   "featuredReleasesStartTimeVar",
   "featuredReleasesEndTimeVar",
+  "featuredReleasesPromotedVar",
   "blockedReleasesReleaseIdVar",
   "contentCategoriesCategoryIdVar",
   "contentCategoriesDisplayNameVar",
@@ -131,6 +133,7 @@ export type FeaturedRelease = {
   [FEATURED_RELEASES_RELEASE_ID_COLUMN]: string;
   [FEATURED_RELEASES_START_TIME_COLUMN]: string;
   [FEATURED_RELEASES_END_TIME_COLUMN]: string;
+  [FEATURED_PROMOTED_COLUMN]: boolean;
 };
 
 export type BlockedRelease = {
