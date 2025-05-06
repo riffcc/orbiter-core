@@ -70,6 +70,10 @@ export const DEFAULT_CONTENT_CATEGORIES: ContentCategory<ContentCategoryMetadata
     categoryId: "music",
     displayName: "Music",
     metadataSchema: {
+      description: {
+        type: "string",
+        description: "Brief description of the music content"
+      },
       totalSongs: {
         type:  "number",
         description: "Total number of songs in this category"
@@ -139,6 +143,52 @@ export const DEFAULT_CONTENT_CATEGORIES: ContentCategory<ContentCategoryMetadata
     categoryId: "video",
     displayName: "Videos",
     metadataSchema: {
+      title: {
+        type: "string",
+        description: "Title of the video"
+      },
+      description: {
+        type: "string",
+        description: "Brief description of the video content"
+      },
+      duration: {
+        type: "string",
+        description: "Length of the video (e.g., HH:MM:SS)"
+      },
+      resolution: {
+        type: "string",
+        description: "Video resolution (e.g., 1920x1080)"
+      },
+      format: {
+        type: "string",
+        description: "File format of the video (e.g., mp4, mov)"
+      },
+      tags: {
+        type: "array",
+        description: "User-defined tags for searchability (e.g., tutorial, vlog, funny)"
+      },
+      uploader: {
+        type: "string",
+        description: "Name or ID of the uploader/creator"
+      },
+      uploadDate: {
+        type: "string",
+        description: "Date the video was uploaded (e.g., YYYY-MM-DD)"
+      },
+      sourceUrl: {
+        type: "string",
+        description: "Original URL if sourced from an online platform (e.g., YouTube link)"
+      }
+    }
+  },
+  {
+    categoryId: "movie",
+    displayName: "Movies",
+    metadataSchema: {
+      description: {
+        type: "string",
+        description: "Brief description of the movie"
+      },
       resolution: {
         type: "string",
         description: "Video resolution (e.g., 1920x1080)"
@@ -189,9 +239,54 @@ export const DEFAULT_CONTENT_CATEGORIES: ContentCategory<ContentCategoryMetadata
     categoryId: "tvShow",
     displayName: "TV Shows",
     metadataSchema: {
+      description: {
+        type: "string",
+        description: "Brief description of the TV show"
+      },
       seasons: {
         type: "number",
         description: "Number of seasons in the TV show"
+      },
+      totalEpisodes: {
+        type: "number",
+        description: "Total number of episodes aired across all seasons"
+      },
+      genres: {
+        type: "array",
+        description: "Genres associated with the TV show (e.g., comedy, sci-fi)"
+      },
+      firstAiredYear: {
+        type: "number",
+        description: "Year the TV show first aired"
+      },
+      status: {
+        type: "string",
+        description: "Current status of the TV show",
+        options: ['Returning Series', 'Ended', 'Canceled', 'In Production', 'Pilot', 'Unknown'],
+      },
+      TMDBID: {
+        type: "string",
+        description: "The Movie Database identifier for the TV show"
+      },
+      IMDBID: {
+        type: "string",
+        description: "Internet Movie Database identifier for the TV show"
+      },
+      posterCID: {
+        type: "string",
+        description: "Content ID for the TV show poster"
+      },
+      classification: {
+        type: "string",
+        description: "Content rating/classification (e.g., TV-MA, TV-14)"
+      },
+      network: {
+        type: "string",
+        description: "Original television network or streaming service"
+      },
+      averageEpisodeDuration: {
+        type: "string",
+        description: "Average duration of an episode (e.g., ~45 min, 00:45:00)"
       }
     }
   }
