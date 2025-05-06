@@ -2,6 +2,7 @@
   {
     "categoryId": "music",
     "displayName": "Music",
+    "featured": true,
     "metadataSchema": {
       "description": {
         "type": "string",
@@ -117,6 +118,7 @@
   {
     "categoryId": "movie",
     "displayName": "Movies",
+    "featured": true,
     "metadataSchema": {
       "description": {
         "type": "string",
@@ -171,6 +173,7 @@
   {
     "categoryId": "tvShow",
     "displayName": "TV Shows",
+    "featured": true,
     "metadataSchema": {
       "description": {
         "type": "string",

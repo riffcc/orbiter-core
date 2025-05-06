@@ -16,6 +16,7 @@ export const BLOCKED_RELEASES_RELEASE_ID_COLUMN = "releaseId";
 export const CONTENT_CATEGORIES_TABLE_KEY = "contentCategories";
 export const CONTENT_CATEGORIES_CATEGORY_ID = "categoryId";
 export const CONTENT_CATEGORIES_DISPLAY_NAME = "displayName";
+export const CONTENT_CATEGORIES_FEATURED = "featured";
 export const CONTENT_CATEGORIES_METADATA_SCHEMA = "metadataSchema";
 
 export const RELEASES_FILE_COLUMN = "file";
@@ -49,6 +50,7 @@ export const DEFAULT_VARIABLE_IDS = {
   blockedReleasesReleaseIdVar: "/orbitdb/zdpuAkyAA7XiPurjxZ39b2s5Vt57Z5dqnr6TSgMap5wP1qYBi",
   contentCategoriesCategoryIdVar: "/orbitdb/zdpuAtrNCjNSKf8hBM6rrqC4prVvsNph3Wt7E4Y2W8pFvGDXx",
   contentCategoriesDisplayNameVar: "/orbitdb/zdpuAzKVn6Ep8feK8uCtu9GFJGPK2Z3mEmPcg2STKAuGEsKdz",
+  contentCategoriesFeaturedVar: "/orbitdb/zdpuAwmgAbZLeGke6Gaf4tiyw5Rk863nv9BNuwrcezWSKWY7J",
   contentCategoriesMetadataSchemaVar: "/orbitdb/zdpuAnJewUq9HZwExebbauea47Fw2v5JWtxhVufn3UZZBhTsW",
   releasesFileVar: "/orbitdb/zdpuAopp994ERCjk8Gb8D6m1kqSk5RoW9mq1Xsb9yogqgdGcX",
   releasesAuthorVar: "/orbitdb/zdpuAwK1RDcoYe9XxN7G3eohtC6xrquybseqNUqsJMuMA1gKN",
@@ -69,6 +71,7 @@ export const DEFAULT_CONTENT_CATEGORIES: ContentCategory<ContentCategoryMetadata
   {
     categoryId: "music",
     displayName: "Music",
+    featured: true,
     metadataSchema: {
       description: {
         type: "string",
@@ -184,6 +187,7 @@ export const DEFAULT_CONTENT_CATEGORIES: ContentCategory<ContentCategoryMetadata
   {
     categoryId: "movie",
     displayName: "Movies",
+    featured: true,
     metadataSchema: {
       description: {
         type: "string",
@@ -238,6 +242,7 @@ export const DEFAULT_CONTENT_CATEGORIES: ContentCategory<ContentCategoryMetadata
   {
     categoryId: "tvShow",
     displayName: "TV Shows",
+    featured: true,
     metadataSchema: {
       description: {
         type: "string",

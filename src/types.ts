@@ -10,6 +10,7 @@ import {
   COLLECTIONS_THUMBNAIL_COLUMN,
   CONTENT_CATEGORIES_CATEGORY_ID,
   CONTENT_CATEGORIES_DISPLAY_NAME,
+  CONTENT_CATEGORIES_FEATURED,
   CONTENT_CATEGORIES_METADATA_SCHEMA,
   FEATURED_PROMOTED_COLUMN,
   FEATURED_RELEASES_END_TIME_COLUMN,
@@ -49,6 +50,7 @@ export const variableIdKeys = [
   "blockedReleasesReleaseIdVar",
   "contentCategoriesCategoryIdVar",
   "contentCategoriesDisplayNameVar",
+  "contentCategoriesFeaturedVar",
   "contentCategoriesMetadataSchemaVar",
 ] as const;
 
@@ -180,6 +182,7 @@ export const releasesFileSchema: JSONSchemaType<Release<Record<string, unknown>>
 export type ContentCategory<T = string> = {
   [CONTENT_CATEGORIES_CATEGORY_ID]: string;
   [CONTENT_CATEGORIES_DISPLAY_NAME]: string;
+  [CONTENT_CATEGORIES_FEATURED]?: boolean;
   [CONTENT_CATEGORIES_METADATA_SCHEMA]: T;
 };
 
@@ -201,6 +204,7 @@ export const categoriesFileSchema: JSONSchemaType<ContentCategory<ContentCategor
     properties: {
       [CONTENT_CATEGORIES_CATEGORY_ID]: { type: "string" },
       [CONTENT_CATEGORIES_DISPLAY_NAME]: { type: "string" },
+      [CONTENT_CATEGORIES_FEATURED]: { type: "boolean", nullable: true },
       [CONTENT_CATEGORIES_METADATA_SCHEMA]: {
         type: "object",
         additionalProperties: {
@@ -222,6 +226,6 @@ export const categoriesFileSchema: JSONSchemaType<ContentCategory<ContentCategor
         required: [],
       }
     },
-    required: [CONTENT_CATEGORIES_CATEGORY_ID, CONTENT_CATEGORIES_DISPLAY_NAME, CONTENT_CATEGORIES_METADATA_SCHEMA],
+    required: [CONTENT_CATEGORIES_CATEGORY_ID, CONTENT_CATEGORIES_DISPLAY_NAME,CONTENT_CATEGORIES_METADATA_SCHEMA],
   },
 };

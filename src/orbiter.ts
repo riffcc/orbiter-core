@@ -23,6 +23,7 @@ import {
   COLLECTIONS_THUMBNAIL_COLUMN,
   CONTENT_CATEGORIES_CATEGORY_ID,
   CONTENT_CATEGORIES_DISPLAY_NAME,
+  CONTENT_CATEGORIES_FEATURED,
   CONTENT_CATEGORIES_METADATA_SCHEMA,
   CONTENT_CATEGORIES_TABLE_KEY,
   DEFAULT_CONTENT_CATEGORIES,
@@ -279,6 +280,11 @@ export const setUpSite = async ({
     (await constellation.variables.créerVariable({
       catégorie: "chaîneNonTraductible",
     }));
+    const contentCategoriesFeaturedVar =
+    variableIds.contentCategoriesFeaturedVar ||
+    (await constellation.variables.créerVariable({
+      catégorie: "booléen",
+    }));
     const contentCategoriesMetadataSchemaVar =
     variableIds.contentCategoriesMetadataSchemaVar ||
     (await constellation.variables.créerVariable({
@@ -460,6 +466,10 @@ export const setUpSite = async ({
                 idColonne: CONTENT_CATEGORIES_DISPLAY_NAME,
               },
               {
+                idVariable: contentCategoriesFeaturedVar,
+                idColonne: CONTENT_CATEGORIES_FEATURED,
+              },
+              {
                 idVariable: contentCategoriesMetadataSchemaVar,
                 idColonne: CONTENT_CATEGORIES_METADATA_SCHEMA,
               },
@@ -470,14 +480,18 @@ export const setUpSite = async ({
       },
     });
     for (const category of categoriesData) {
+      const vals: types.élémentsBd = {
+        [CONTENT_CATEGORIES_CATEGORY_ID]: category.categoryId,
+        [CONTENT_CATEGORIES_DISPLAY_NAME]: category.displayName,
+        [CONTENT_CATEGORIES_METADATA_SCHEMA]: JSON.stringify(category.metadataSchema),
+      }
+      if (category.featured) {
+        vals[CONTENT_CATEGORIES_FEATURED] = category.featured
+      }
       await constellation.bds.ajouterÉlémentÀTableauParClef({
         idBd: modDbId,
         clefTableau: CONTENT_CATEGORIES_TABLE_KEY,
-        vals: {
-          [CONTENT_CATEGORIES_CATEGORY_ID]: category.categoryId,
-          [CONTENT_CATEGORIES_DISPLAY_NAME]: category.displayName,
-          [CONTENT_CATEGORIES_METADATA_SCHEMA]: JSON.stringify(category.metadataSchema),
-        },
+        vals,
       });
     }
   }
@@ -499,6 +513,7 @@ export const setUpSite = async ({
     // content categories
     contentCategoriesCategoryIdVar,
     contentCategoriesDisplayNameVar,
+    contentCategoriesFeaturedVar,
     contentCategoriesMetadataSchemaVar,
 
     // releases
@@ -1649,15 +1664,18 @@ export class Orbiter {
 
   async addCategory(category: ContentCategory): Promise<string> {
     const { modDbId } = await this.orbiterConfig();
-
+    const vals: types.élémentsBd = {
+      [CONTENT_CATEGORIES_CATEGORY_ID]: category.categoryId,
+      [CONTENT_CATEGORIES_DISPLAY_NAME]: category.displayName,
+      [CONTENT_CATEGORIES_METADATA_SCHEMA]: JSON.stringify(category.metadataSchema),
+    }
+    if (category.featured) {
+      vals[CONTENT_CATEGORIES_FEATURED] = category.featured
+    }
     const elementIds = await this.constellation.bds.ajouterÉlémentÀTableauParClef({
       idBd: modDbId,
       clefTableau: CONTENT_CATEGORIES_TABLE_KEY,
-      vals: {
-        [CONTENT_CATEGORIES_CATEGORY_ID]: category.categoryId,
-        [CONTENT_CATEGORIES_DISPLAY_NAME]: category.displayName,
-        [CONTENT_CATEGORIES_METADATA_SCHEMA]: category.metadataSchema,
-      },
+      vals,
     });
     return elementIds[0];
   }
