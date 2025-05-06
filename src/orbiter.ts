@@ -260,7 +260,7 @@ export const setUpSite = async ({
       catégorie: "horoDatage",
     }));
     const featuredReleasesPromotedVar =
-    variableIds.featuredReleasesEndTimeVar ||
+    variableIds.featuredReleasesPromotedVar ||
     (await constellation.variables.créerVariable({
       catégorie: "booléen",
     }));
