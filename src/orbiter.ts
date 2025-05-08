@@ -45,6 +45,7 @@ import {
   TRUSTED_SITES_NAME_COL,
   TRUSTED_SITES_SITE_ID_COL,
   TRUSTED_SITES_TABLE_KEY,
+  DEFAULT_VARIABLE_IDS,
 } from "./consts.js";
 import type {
   BlockedRelease,
@@ -582,14 +583,14 @@ export class Orbiter {
     constellation,
   }: {
     siteId: string;
-    variableIds: VariableIds;
+    variableIds?: VariableIds;
     constellation?: Constellation;
   }) {
     this.events = new TypedEmitter<OrbiterEvents>();
 
     this.siteId = siteId;
 
-    this.variableIds = variableIds;
+    this.variableIds = variableIds ?? DEFAULT_VARIABLE_IDS;
 
     if (constellation) {
       this.constellation = constellation;
