@@ -2,7 +2,8 @@ import { TypedEmitter } from "tiny-typed-emitter";
 
 import { Lock } from "semaphore-async-await";
 
-import { créerConstellation, type Constellation, type bds, type tableaux, type types } from "constl-ipa-fork";
+import { créerConstellation } from "constl-ipa-fork";
+import type { Constellation, bds, tableaux, types } from "constl-ipa-fork";
 import {
   faisRien,
   ignorerNonDéfinis,
