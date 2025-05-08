@@ -207,13 +207,15 @@ const getSwarmDbSchema = ({
   };
 };
 
-export const validateCategories = async (dir?: string) => {
+export const validateCategories = async ({ dir } : { dir: string }) => {
   let categoriesData = DEFAULT_CONTENT_CATEGORIES;
-  if (dir) {
-    const {readFileSync} = await import("fs")
-    const { join } = await import("path")
-    const categoriesPath = join(dir, "categories.json");
+  const { readFileSync, existsSync } = await import("fs");
+  const { join } = await import("path");
+  const categoriesPath = join(dir, "contentCategories.json");
+  
+  if (existsSync(categoriesPath)) {
     categoriesData = JSON.parse(readFileSync(categoriesPath, "utf8"));
+    console.log(JSON.stringify(categoriesData, null, 2));
     const ajv = new Ajv();
     const validate = ajv.compile(categoriesFileSchema);
     const valid = validate(categoriesData);
