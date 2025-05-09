@@ -322,7 +322,6 @@ yargs(hideBin(process.argv))
         }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        const errorStack = error instanceof Error ? error.stack : undefined;
 
         // Use a single display instance for non-machine mode in the catch block
         let displayInCatch: Ora | undefined = argv.machine ? undefined : (wheel || ora({ text: "Orbiter status" }));
