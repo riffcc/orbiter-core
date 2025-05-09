@@ -24,8 +24,8 @@ importers:
         specifier: ^5.4.4
         version: 5.4.4
       constl-ipa-fork:
-        specifier: ^1.8.3
-        version: 1.8.3(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0))
+        specifier: ^1.8.4
+        version: 1.8.4(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0))
       deepcopy:
         specifier: ^2.1.0
         version: 2.1.0
@@ -3633,8 +3633,8 @@ packages:
     resolution: {integrity: sha512-ZqRXc+tZukToSNmh5C2iWMSoV3X1YUcPbqEM4DkEG5tNQXrQUZCNVGGv3IuicnkMtPfGf3Xtp8WCXs295iQ1pQ==}
     engines: {node: '>= 0.10.0'}
 
-  constl-ipa-fork@1.8.3:
-    resolution: {integrity: sha512-UgDasdnCHK1h/O15nL0vnsiBN/OMYKTG60+Qb0ijr/Dxe3l84/r4zOE6n+vwxSQOixkOjZTDpOhi8PI0wsTuVw==}
+  constl-ipa-fork@1.8.4:
+    resolution: {integrity: sha512-Y1M00hjRYuvI8CH1lfziIPxmNgvxIVSgVGDe/zyl81jpI1nBN5hH3JPiiI88efYgwMBlyZ4SsvgrTcmq97S6jA==}
     engines: {node: '>=20'}
 
   conventional-changelog-angular@8.0.0:
@@ -4053,8 +4053,8 @@ packages:
   electron-to-chromium@1.5.140:
     resolution: {integrity: sha512-o82Rj+ONp4Ip7Cl1r7lrqx/pXhbp/lh9DpKcMNscFJdh8ebyRofnc7Sh01B4jx403RI0oqTBvlZ7OBIZLMr2+Q==}
 
-  electron-to-chromium@1.5.150:
-    resolution: {integrity: sha512-rOOkP2ZUMx1yL4fCxXQKDHQ8ZXwisb2OycOQVKHgvB3ZI4CvehOd4y2tfnnLDieJ3Zs1RL1Dlp3cMkyIn7nnXA==}
+  electron-to-chromium@1.5.151:
+    resolution: {integrity: sha512-Rl6uugut2l9sLojjS4H4SAr3A4IgACMLgpuEMPYCVcKydzfyPrn5absNRju38IhQOf/NwjJY8OGWjlteqYeBCA==}
 
   electron-window@0.8.1:
     resolution: {integrity: sha512-W1i9LfnZJozk3MXE8VgsL2E5wOUHSgyCvcg1H2vQQjj+gqhO9lVudgY3z3SF7LJAmi+0vy3CJkbMqsynWB49EA==}
@@ -13303,7 +13303,7 @@ snapshots:
   browserslist@4.24.5:
     dependencies:
       caniuse-lite: 1.0.30001717
-      electron-to-chromium: 1.5.150
+      electron-to-chromium: 1.5.151
       node-releases: 2.0.19
       update-browserslist-db: 1.1.3(browserslist@4.24.5)
 
@@ -13715,7 +13715,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  constl-ipa-fork@1.8.3(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0)):
+  constl-ipa-fork@1.8.4(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0)):
     dependencies:
       '@chainsafe/libp2p-gossipsub': 14.1.1
       '@chainsafe/libp2p-noise': 16.1.2
@@ -14342,7 +14342,7 @@ snapshots:
 
   electron-to-chromium@1.5.140: {}
 
-  electron-to-chromium@1.5.150: {}
+  electron-to-chromium@1.5.151: {}
 
   electron-window@0.8.1:
     dependencies:
