@@ -585,8 +585,8 @@ export class Orbiter {
     constellation,
   }: {
     siteId: string;
+    constellation: Constellation;
     variableIds?: VariableIds;
-    constellation?: Constellation;
   }) {
     this.events = new TypedEmitter<OrbiterEvents>();
 
@@ -594,11 +594,7 @@ export class Orbiter {
 
     this.variableIds = variableIds ?? DEFAULT_VARIABLE_IDS;
 
-    if (constellation) {
-      this.constellation = constellation;
-    } else {
-      this.constellation = créerConstellation({ protocoles: [RIFFCC_PROTOCOL] });
-    }
+    this.constellation = constellation;
 
     this._init();
   }
