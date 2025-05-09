@@ -242,7 +242,7 @@ yargs(hideBin(process.argv))
     },
   )
   .command(
-    ["run [-m] [--dir <dir> --domains <domains>]"],
+    ["run [-m] [--dir <dir> --domain <domain>]"],
     "Start orbiter",
     (yargs) => {
       return yargs
