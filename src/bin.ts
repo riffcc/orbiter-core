@@ -49,15 +49,17 @@ const followConnections = async ({ ipa }: { ipa: Constellation }) => {
   };
   let now = Date.now();
   const peerID = await ipa.obtIdLibp2p()
+  const { sfip } = await ipa.attendreSfipEtOrbite();
+
   const fFinale = () => {
     const nIpfsConnections = connexions.sfip.length;
     const nConstellationConnections = connexions.constellation.filter(
       (c) => c.infoMembre.idCompte !== connexions.monId && c.vuÀ && c.vuÀ - now,
     ).length;
-
+    const multiaAddrs = sfip.libp2p.getMultiaddrs();
     logUpdate(
       chalk.yellow(
-        `Account ID: ${connexions.monId}\nPeer ID: ${peerID}\nNetwork connections: ${nIpfsConnections}\nConstellation nodes online: ${nConstellationConnections}\n${JSON.stringify(connexions.sfip, undefined, 2)}`,
+        `Account ID: ${connexions.monId}\nPeer ID: ${peerID}\nNetwork connections: ${nIpfsConnections}\nConstellation nodes online: ${nConstellationConnections}\n${JSON.stringify(connexions.sfip, undefined, 2)}\nMultiAddrs: \n${JSON.stringify(multiaAddrs, undefined, 2)}}`,
       ),
     );
   };
@@ -240,7 +242,7 @@ yargs(hideBin(process.argv))
     },
   )
   .command(
-    ["run [-m] [--dir <dir>]"],
+    ["run [-m] [--dir <dir> --domains <domains>]"],
     "Start orbiter",
     (yargs) => {
       return yargs
@@ -256,12 +258,11 @@ yargs(hideBin(process.argv))
             "Machine communication mode (useful for programmatic access).",
           type: "boolean",
         })
-        /*.option("domains", {
+        .option("domain", {
           alias: "dm",
-          describe: "The directory of the Orbiter node.",
+          describe: "The production domain to adversite",
           type: "string",
-          default: DEFAULT_ORBITER_DIR,
-        });*/ // Todo - figure out how to have option for multiple domains with repeated argument (see yargs docs)
+        });
     },
     async (argv) => {
       let wheel: Ora | undefined = undefined;
@@ -277,7 +278,7 @@ yargs(hideBin(process.argv))
 
       const constellation = créerConstellation({
         dossier: argv.dir,
-        // domaines: argv.domains,  // Todo - see above
+        domaines: argv.domain ? [argv.domain] : undefined,
       });
 
       await createOrbiter({
