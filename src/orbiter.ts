@@ -2,7 +2,6 @@ import { TypedEmitter } from "tiny-typed-emitter";
 
 import { Lock } from "semaphore-async-await";
 
-import { créerConstellation } from "constl-ipa-fork";
 import type { Constellation, bds, tableaux, types } from "constl-ipa-fork";
 import {
   faisRien,
@@ -41,7 +40,6 @@ import {
   RELEASES_METADATA_COLUMN,
   RELEASES_NAME_COLUMN,
   RELEASES_THUMBNAIL_COLUMN,
-  RIFFCC_PROTOCOL,
   TRUSTED_SITES_NAME_COL,
   TRUSTED_SITES_SITE_ID_COL,
   TRUSTED_SITES_TABLE_KEY,
