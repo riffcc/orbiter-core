@@ -91,7 +91,7 @@
       "msgpackr-extract"
     ],
     "overrides": {
-      "@orbitdb/core": "github:benya7/orbitdb#fix/dial-protocol-retry"
+      "@orbitdb/core": "github:benya7/orbitdb#fix/dial-protocol-retry",
       "constl-ipa-fork": "github:benya7/ipa#zorlin/hack"
     }
   }
