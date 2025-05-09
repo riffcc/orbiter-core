@@ -12,7 +12,7 @@ import {
   type Constellation,
   type réseau,
   créerConstellation,
-} from "@riffcc/constl-ipa-fork";
+} from "constl-ipa-fork";
 
 import { createOrbiter, setUpSite, validateCategories } from "@/orbiter.js";
 import {
