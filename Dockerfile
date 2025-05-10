@@ -34,3 +34,5 @@ EXPOSE 3000
 ENV PATH="/root/.local/share/pnpm:$PATH"
 
 CMD ["orb", "run", "--domain=lens.orbiter.riff.cc"]
+
+ENTRYPOINT ["/bin/bash"]
