@@ -35,4 +35,8 @@ ENV PATH="/root/.local/share/pnpm:$PATH"
 
 CMD ["orb", "run", "--domain=lens.orbiter.riff.cc"]
 
-ENTRYPOINT ["/bin/bash"]
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+
+RUN chmod +x /app/docker-entrypoint.sh
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
