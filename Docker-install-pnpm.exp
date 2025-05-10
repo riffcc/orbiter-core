@@ -1,0 +1,24 @@
+#!/usr/bin/env expect
+#
+# approve-all-builds.exp
+# Unconditionally press “a” → Enter, then “y” → Enter,
+# with ~100 ms between keypresses.
+
+# disable any internal timeout
+set timeout -1
+
+# spawn the pnpm command
+spawn pnpm approve-builds -g
+
+# wait a short moment to let the prompt render (100 ms)
+after 100
+# send “a” + Enter
+send "a\r"
+
+# wait another 100 ms
+after 100
+# send “y” + Enter
+send "y\r"
+
+# wait for the process to finish
+expect eof
