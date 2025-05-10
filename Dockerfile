@@ -19,7 +19,9 @@ RUN wget -qO- https://get.pnpm.io/install.sh | ENV="$HOME/.bashrc" SHELL="$(whic
 
 RUN /bin/bash -c 'source ~/.bashrc ; pnpm install -g @riffcc/orbiter@0.2.27'
 
-COPY lenses/ /app/data/
+COPY lenses/.orbiter /app/data/lenses/.orbiter
+
+COPY lenses/.env /app/data/lenses/.env
 
 COPY Docker-install-pnpm.exp /app/Docker-install-pnpm.exp
 
