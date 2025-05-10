@@ -1,0 +1,29 @@
+{
+    "siteId": "/orbitdb/zdpuAtxRa7qLeeU8x8MDsxdmAZyevuYdk7HMjMQCefpxuvFUT",
+    "variableIds": {
+        "trustedSitesSiteIdVar": "/orbitdb/zdpuB2wkkeLz6ydHKpsS77vDNRHbasD8JYExS9hY4jBVZqKkf",
+        "trustedSitesNameVar": "/orbitdb/zdpuArhaMLFcttwWrd5RuHgfS4tV9GcitBKcNwarvQLr9VDFi",
+        "featuredReleasesReleaseIdVar": "/orbitdb/zdpuAuoH7hoTZvBuAxG667k5YMSZaCQXU8Y88CoRG57vjZLaZ",
+        "featuredReleasesStartTimeVar": "/orbitdb/zdpuArQnMwqU1jN9eZ9J6k8H1euLRF67qVkeWjU9NBTAf4HLQ",
+        "featuredReleasesEndTimeVar": "/orbitdb/zdpuArhQVb8NYLXu8oyEbKZmdwGmPWXACxrYBR49zGkGyo2NV",
+        "featuredReleasesPromotedVar": "/orbitdb/zdpuAzjr3v1PjM33JUp7NJpKtYMNeYQJwiR5K3REKeSCMoegq",
+        "blockedReleasesReleaseIdVar": "/orbitdb/zdpuAkyAA7XiPurjxZ39b2s5Vt57Z5dqnr6TSgMap5wP1qYBi",
+        "contentCategoriesCategoryIdVar": "/orbitdb/zdpuAtrNCjNSKf8hBM6rrqC4prVvsNph3Wt7E4Y2W8pFvGDXx",
+        "contentCategoriesDisplayNameVar": "/orbitdb/zdpuAzKVn6Ep8feK8uCtu9GFJGPK2Z3mEmPcg2STKAuGEsKdz",
+        "contentCategoriesFeaturedVar": "/orbitdb/zdpuAwmgAbZLeGke6Gaf4tiyw5Rk863nv9BNuwrcezWSKWY7J",
+        "contentCategoriesMetadataSchemaVar": "/orbitdb/zdpuAnJewUq9HZwExebbauea47Fw2v5JWtxhVufn3UZZBhTsW",
+        "releasesFileVar": "/orbitdb/zdpuAopp994ERCjk8Gb8D6m1kqSk5RoW9mq1Xsb9yogqgdGcX",
+        "releasesAuthorVar": "/orbitdb/zdpuAwK1RDcoYe9XxN7G3eohtC6xrquybseqNUqsJMuMA1gKN",
+        "releasesContentNameVar": "/orbitdb/zdpuB1DGtFGEJDVNzxQuVzixjzT3MNH2cpxqBZBcVgDXVt17j",
+        "releasesThumbnailVar": "/orbitdb/zdpuAxWrRcBpPYkmBXr7XQLVB721ZbBomncpKf7UMrGgVxqau",
+        "releasesCoverVar": "/orbitdb/zdpuAx9oHfCHQ4AuMGjACVi9nze5wfKDW9h6NzXVyfv1ZV93t",
+        "releasesMetadataVar": "/orbitdb/zdpuAwPUmxyTjE26e4LLMNFtnQvaaUeVyQczS2GQjX6MaWzXu",
+        "releasesCategoryVar": "/orbitdb/zdpuArKo58rLT9WawJScfBMh83H68UXrgdVC2FCvwCZVqJ7fA",
+        "collectionsAuthorVar": "/orbitdb/zdpuAvM6HdN4tRWMTC2Gyqx9WhgiT3xap2N3cK5JLQUqrxeLS",
+        "collectionsMetadataVar": "/orbitdb/zdpuAuScb292oiKL8DZsdPcQieFbUo64Nz8UMy8W2r6omv6f3",
+        "collectionsNameVar": "/orbitdb/zdpuB29yexzEQ8xjFHWU5WPnGsR74cNVHRyp2ynKHFLr3ycsh",
+        "collectionsThumbnailVar": "/orbitdb/zdpuAv4xkPWt2sy8uRRsyqvUK18nkJgR23MbEd85FRbtiG73k",
+        "collectionsReleasesVar": "/orbitdb/zdpuAt2rnT1gYeQxgVcL6B35k7c7JEWWUTtNTQ8xxous6a13N",
+        "collectionsCategoryVar": "/orbitdb/zdpuAvAND67Sjsc2csTnJZEdJ5xURyT79PpB5gWX6fVjixvak"
+    }
+}
