@@ -65,7 +65,7 @@
     "@inquirer/prompts": "^7.4.1",
     "chalk": "^5.4.1",
     "change-case": "^5.4.4",
-    "constl-ipa-fork": "^1.8.5",
+    "constl-ipa-fork": "^1.8.65",
     "deepcopy": "^2.1.0",
     "dotenv": "^16.5.0",
     "lodash-es": "^4.17.21",
