@@ -24,8 +24,8 @@ importers:
         specifier: ^5.4.4
         version: 5.4.4
       constl-ipa-fork:
-        specifier: ^1.8.65
-        version: 1.8.65(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0))
+        specifier: ^1.8.66
+        version: 1.8.66(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0))
       deepcopy:
         specifier: ^2.1.0
         version: 2.1.0
@@ -1946,10 +1946,6 @@ packages:
     resolution: {integrity: sha512-uIEOuruCqKTP50OBWwgz4Js2+LhiBQaxc57cnP71f45b1mHEAo1OCR1Zn/TbvSW/mV1x+JqhacIktkKyaYqhCw==}
     engines: {node: '>=16.0.0', npm: '>=7.0.0'}
 
-  '@ipld/dag-cbor@9.2.3':
-    resolution: {integrity: sha512-x78CdVhtctIMBpwOnzbojsvDy6qNxdeR3RC2W+/fMo2sccqlYkPXbjpmghAVdKx/g0xfHYvSMU8cgCnYvLwRag==}
-    engines: {node: '>=16.0.0', npm: '>=7.0.0'}
-
   '@ipld/dag-json@10.2.3':
     resolution: {integrity: sha512-itacv1j1hvYgLox2B42Msn70QLzcr0MEo5yGIENuw2SM/lQzq9bmBiMky+kDsIrsqqblKTXcHBZnnmK7D4a6ZQ==}
     engines: {node: '>=16.0.0', npm: '>=7.0.0'}
@@ -3637,8 +3633,8 @@ packages:
     resolution: {integrity: sha512-ZqRXc+tZukToSNmh5C2iWMSoV3X1YUcPbqEM4DkEG5tNQXrQUZCNVGGv3IuicnkMtPfGf3Xtp8WCXs295iQ1pQ==}
     engines: {node: '>= 0.10.0'}
 
-  constl-ipa-fork@1.8.65:
-    resolution: {integrity: sha512-pJFjL0huIMuiYvKaav+l1Q1hOOOjqvdbfEooxcRsjr3tXL3wG+Ad/zGQSAwu8ctlqIYgaG+PuCOrHPrwE9Bmuw==}
+  constl-ipa-fork@1.8.66:
+    resolution: {integrity: sha512-48bl91AryGLS77/MSp2kPP/HKSm0uKBhwg9kytRESmDfTePFZL0mnzLW/D1tTl9+p7z/EzeZzC3NP3QakkX6dA==}
     engines: {node: '>=20'}
 
   conventional-changelog-angular@8.0.0:
@@ -6449,9 +6445,6 @@ packages:
 
   multiformats@13.3.2:
     resolution: {integrity: sha512-qbB0CQDt3QKfiAzZ5ZYjLFOs+zW43vA4uyM8g27PeEuXZybUOFyjrVdP93HPBHMoglibwfkdVwbzfUq8qGcH6g==}
-
-  multiformats@13.3.3:
-    resolution: {integrity: sha512-TlaFCzs3NHNzMpwiGwRYehnnhHlZcWfptygFekshlb9xCyO09GfN+9881+VBENCdRnKOeqmMxDCbupNecV8xRQ==}
 
   multimatch@5.0.0:
     resolution: {integrity: sha512-ypMKuglUrZUD99Tk2bUQ+xNQj43lPEfAeX2o9cTteAmShXy2VHDJpuwu1o0xqoKCt9jLVAvwyFKdLTPXKAfJyA==}
@@ -10998,11 +10991,6 @@ snapshots:
       cborg: 4.2.10
       multiformats: 13.3.2
 
-  '@ipld/dag-cbor@9.2.3':
-    dependencies:
-      cborg: 4.2.10
-      multiformats: 13.3.3
-
   '@ipld/dag-json@10.2.3':
     dependencies:
       cborg: 4.2.10
@@ -11747,7 +11735,7 @@ snapshots:
 
   '@orbitdb/core@https://codeload.github.com/benya7/orbitdb/tar.gz/c07e42740e68708f81222ccfff368717e890fe9f':
     dependencies:
-      '@ipld/dag-cbor': 9.2.3
+      '@ipld/dag-cbor': 9.2.2
       '@libp2p/crypto': 5.1.1
       it-pipe: 3.0.1
       level: 8.0.1
@@ -13732,7 +13720,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  constl-ipa-fork@1.8.65(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0)):
+  constl-ipa-fork@1.8.66(react-native@0.73.6(@babel/core@7.26.10)(@babel/preset-env@7.24.4(@babel/core@7.26.10))(react@18.2.0)):
     dependencies:
       '@chainsafe/libp2p-gossipsub': 14.1.1
       '@chainsafe/libp2p-noise': 16.1.2
@@ -17617,8 +17605,6 @@ snapshots:
   multiformats@12.1.3: {}
 
   multiformats@13.3.2: {}
-
-  multiformats@13.3.3: {}
 
   multimatch@5.0.0:
     dependencies:
