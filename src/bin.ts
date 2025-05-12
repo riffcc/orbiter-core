@@ -540,6 +540,65 @@ yargs(hideBin(process.argv))
     },
   )
   .command(
+    ["delete-releases"],
+    "Delete releases by their IDs",
+    (yargs) => {
+      return yargs
+      .option("dir", {
+        alias: "d",
+        describe: "The directory of the Orbiter node.",
+        type: "string",
+        default: DEFAULT_ORBITER_DIR,
+      })
+      .option("releases-ids", {
+        alias: "ids",
+        describe: "IDs of the releases to delete (can be specified multiple times)",
+        type: "string",
+        array: true,
+        demandOption: true,
+      });
+    },
+    async (argv) => {
+      const wheel = ora(chalk.yellow(`Starting Orbiter`));
+      const dir = argv.dir || DEFAULT_ORBITER_DIR;
+      const releasesIds = argv.releasesIds;
+
+      if (!releasesIds || releasesIds.length === 0) {
+          wheel.fail(chalk.red("At least one release ID must be provided using --releases-ids or -ids."));
+          process.exit(1);
+      }
+
+      const constellation = créerConstellation({
+        dossier: dir,
+      });
+      
+      try {
+        const { orbiter } = await createOrbiter({
+          constellation,
+        });
+
+        wheel.start(chalk.yellow(`Deleting ${releasesIds.length} releases...`));
+        await Promise.all(
+          releasesIds.map(async (releaseId) => {
+            await orbiter.removeRelease(releaseId);
+          })
+        );
+        wheel.succeed(chalk.yellow(`Successfully deleted ${releasesIds.length} releases`));
+      } catch (error) {
+        wheel.fail(chalk.red(`Error deteling releases: ${error.message}`));
+        await constellation.fermer();
+        process.exit(1);
+      }
+
+      // Cleanup
+      wheel.start(chalk.yellow("Cleaning things up..."));
+      await constellation.fermer();
+
+      wheel.succeed(chalk.yellow("All done!"));
+      process.exit(0);
+    },
+  )
+  .command(
     ["version"],
     "Get orbiter version",
     (yargs) => {
