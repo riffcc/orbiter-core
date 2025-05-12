@@ -266,102 +266,55 @@ yargs(hideBin(process.argv))
     },
     async (argv) => {
       let wheel: Ora | undefined = undefined;
-      let forgetConnections: types.schémaFonctionOublier | undefined = undefined;
-      let constellationInstance: Constellation | undefined = undefined;
+      let forgetConnections: types.schémaFonctionOublier | undefined =
+        undefined;
 
-      try {
+      if (argv.machine) {
+        sendMachineMessage({ message: { type: "STARTING ORBITER" } });
+      } else {
+        wheel = ora();
+        wheel.start(chalk.yellow(`Initialising Orbiter`));
+      }
+
+      const constellation = créerConstellation({
+        dossier: argv.dir,
+        domaines: argv.domain ? [argv.domain] : undefined,
+      });
+
+      await createOrbiter({
+        constellation,
+      });
+
+      process.stdin.on("data", async () => {
         if (argv.machine) {
-          sendMachineMessage({ message: { type: "STARTING ORBITER" } });
+          sendMachineMessage({ message: { type: "Closing Orbiter" } });
         } else {
-          wheel = ora();
-          wheel.start(chalk.yellow(`Initialising Orbiter`));
+          wheel?.start(chalk.yellow("Closing Orbiter..."));
         }
-
-        constellationInstance = créerConstellation({
-          dossier: argv.dir,
-          domaines: argv.domain ? [argv.domain] : undefined,
-        });
-
-        await createOrbiter({
-          constellation: constellationInstance,
-        });
-
-        process.stdin.on("data", async () => {
+        try {
+          await forgetConnections?.();
+          await constellation.fermer();
+        } finally {
           if (argv.machine) {
-            sendMachineMessage({ message: { type: "Closing Orbiter" } });
+            sendMachineMessage({ message: { type: "CLOSED" } });
           } else {
-            wheel?.start(chalk.yellow("Closing Orbiter..."));
+            wheel?.succeed(chalk.yellow("Orbiter closed."));
           }
-          try {
-            await forgetConnections?.();
-            if (constellationInstance) {
-              await constellationInstance.fermer();
-            }
-          } finally {
-            if (argv.machine) {
-              sendMachineMessage({ message: { type: "CLOSED" } });
-            } else {
-              wheel?.succeed(chalk.yellow("Orbiter closed."));
-            }
-            process.exit(0);
-          }
+          process.exit(0);
+        }
+      });
+      if (argv.machine) {
+        sendMachineMessage({
+          message: { type: "ORBITER READY" },
         });
-
-        if (argv.machine) {
-          sendMachineMessage({
-            message: { type: "ORBITER READY" },
-          });
-        } else {
-          const peerId = await constellationInstance.obtIdLibp2p();
-          wheel!.succeed(
-            chalk.yellow(
-              `Orbiter is running. Press \`enter\` to close.\nPeer id: ${peerId}`,
-            ),
-          );
-          forgetConnections = await followConnections({ ipa: constellationInstance });
-        }
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-
-        // Use a single display instance for non-machine mode in the catch block
-        let displayInCatch: Ora | undefined = argv.machine ? undefined : (wheel || ora({ text: "Orbiter status" }));
-
-        if (argv.machine) {
-          sendMachineMessage({ message: { type: `ERROR: ${errorMessage}` } });
-        } else {
-          displayInCatch!.fail(chalk.red(`Orbiter encountered an error: ${errorMessage}`));
-          console.error("Detailed error:", error); // Log the full error object for more details
-        }
-
-        if (constellationInstance) {
-          if (argv.machine) {
-            // General message, details are in console log on the machine running Orbiter
-            sendMachineMessage({ message: { type: "CLOSING_DUE_TO_ERROR" } });
-          } else {
-            displayInCatch!.start(chalk.yellow("Attempting to close Orbiter due to error..."));
-          }
-
-          try {
-            if (forgetConnections) {
-              await forgetConnections();
-            }
-            await constellationInstance.fermer();
-            if (argv.machine) {
-              sendMachineMessage({ message: { type: "CLOSED_AFTER_ERROR" } });
-            } else {
-              displayInCatch!.succeed(chalk.yellow("Orbiter closed after error."));
-            }
-          } catch (closeError) {
-            const closeErrorMessage = closeError instanceof Error ? closeError.message : String(closeError);
-            if (argv.machine) {
-              sendMachineMessage({ message: { type: `ERROR_DURING_CLEANUP: ${closeErrorMessage}` } });
-            } else {
-              displayInCatch!.fail(chalk.red(`Error during cleanup: ${closeErrorMessage}`));
-            }
-            console.error("Detailed cleanup error:", closeError); // Log the full cleanup error object
-          }
-        }
-        process.exit(1); // Exit with an error code
+      } else {
+        const peerId = await constellation.obtIdLibp2p();
+        wheel!.succeed(
+          chalk.yellow(
+            `Orbiter is running. Press \`enter\` to close.\nPeer id: ${peerId}`,
+          ),
+        );
+        forgetConnections = await followConnections({ ipa: constellation });
       }
     },
   )
