@@ -1,5 +1,9 @@
 import { Orbiter, createOrbiter } from "../dist/index.js";
+import { saveConfig, configIsComplete } from "../dist/config.js";
 import { créerConstellation } from "constl-ipa-fork";
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
 
 const MAX_LENSES = 50;
 const TARGET_SYNC_TIME_MS = 3000;
@@ -7,11 +11,44 @@ const STEP_SIZE = 5;
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+async function createTempLensDir(id) {
+  const tempDir = path.join(os.tmpdir(), `orbiter-benchmark-lens-${id}-${Date.now()}`);
+  fs.mkdirSync(tempDir, { recursive: true });
+  return tempDir;
+}
+
+async function configureLens(dir, id) {
+  const siteId = `benchmark-lens-${id}`;
+  const config = {
+    siteId,
+    variableIds: {
+      releases: `releases-${siteId}`,
+      collections: `collections-${siteId}`,
+      trustedSites: `trusted-sites-${siteId}`,
+      blockedReleases: `blocked-releases-${siteId}`,
+      featuredReleases: `featured-releases-${siteId}`,
+      contentCategories: `content-categories-${siteId}`
+    }
+  };
+  
+  await saveConfig({
+    dir,
+    config,
+    mode: 'json'
+  });
+  
+  return config;
+}
+
 async function createLens(id) {
   console.log(`Creating lens ${id}...`);
   
+  const lensDir = await createTempLensDir(id);
+  await configureLens(lensDir, id);
+  
   const constellation = créerConstellation({
     protocoles: ["/riffcc/1.0.0"],
+    dossier: lensDir,
     filtreTransport: (transport) => {
       if (transport.remoteAddr && 
           (transport.remoteAddr.includes('127.0.0.1') || 
@@ -34,26 +71,37 @@ async function createLens(id) {
     checkInit();
   });
   
-  const { orbiter: lens } = await createOrbiter({
-    constellation
-  });
-  
-  console.log(`Created lens ${id} with site ID: ${lens.siteId}`);
-  
   try {
-    await lens.addRelease({
-      contentName: `Test Release ${id}`,
-      file: `QmTest${id}`,
-      thumbnail: `QmThumb${id}`,
-      author: `Author ${id}`,
-      metadata: { description: `Test release ${id}` }
+    const { orbiter: lens } = await createOrbiter({
+      constellation
     });
-    console.log(`Added test release to lens ${id}`);
+    
+    lens.tempDir = lensDir; // Store temp directory for cleanup later
+    console.log(`Created lens ${id} with site ID: ${lens.siteId}`);
+    
+    try {
+      await lens.addRelease({
+        contentName: `Test Release ${id}`,
+        file: `QmTest${id}`,
+        thumbnail: `QmThumb${id}`,
+        author: `Author ${id}`,
+        metadata: { description: `Test release ${id}` }
+      });
+      console.log(`Added test release to lens ${id}`);
+    } catch (error) {
+      console.error(`Error adding release to lens ${id}:`, error);
+    }
+    
+    return lens;
   } catch (error) {
-    console.error(`Error adding release to lens ${id}:`, error);
+    console.error(`Error creating lens ${id}:`, error);
+    try {
+      fs.rmSync(lensDir, { recursive: true, force: true });
+    } catch (cleanupError) {
+      console.error(`Error cleaning up temp directory for lens ${id}:`, cleanupError);
+    }
+    throw error;
   }
-  
-  return lens;
 }
 
 async function benchmarkSync(numLenses) {
@@ -149,6 +197,9 @@ async function benchmarkSync(numLenses) {
   for (const lens of lenses) {
     try {
       await lens.constellation.fermer();
+      if (lens.tempDir) {
+        fs.rmSync(lens.tempDir, { recursive: true, force: true });
+      }
     } catch (error) {
       console.error("Error closing constellation:", error);
     }
