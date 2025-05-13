@@ -2125,10 +2125,7 @@ export class Orbiter {
     accountId?: string;
   }): Promise<types.schémaFonctionOublier> {
     return await this.constellation.profil.suivreImage({
-      f: f as unknown as types.schémaFonctionSuivi<{
-        image: Uint8Array;
-        idImage: string;
-      } | null>, // Type assertion with proper type
+      f,
       idCompte: accountId,
     });
   }
