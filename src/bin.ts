@@ -21,7 +21,12 @@ import {
   getConfig,
   saveConfig,
 } from "@/config.js";
-import { ConfigMode, Release, releasesFileSchema } from "./types.js";
+import {
+  ConfigMode,
+  Release,
+  releasesFileSchema,
+  DatabaseConfig,
+} from "./types.js";
 import {
   CONFIG_FILE_NAME,
   DEFAULT_ORBITER_DIR,
@@ -119,6 +124,20 @@ yargs(hideBin(process.argv))
           alias: "i",
           description: "Ignore defaults and regenerate all configuration.",
           type: "boolean",
+        })
+        .option("database-backend", {
+          alias: "db",
+          describe: "Database backend to use (leveldb or rocksdb).",
+          type: "string",
+          choices: ["leveldb", "rocksdb"],
+          default: "leveldb",
+        })
+        .option("multi-process", {
+          alias: "mp",
+          describe:
+            "Enable multi-process support for database (requires rocksdb).",
+          type: "boolean",
+          default: false,
         });
     },
     async (argv) => {
@@ -136,6 +155,14 @@ yargs(hideBin(process.argv))
           ...DEFAULT_VARIABLE_IDS,
           ...existingConfig.variableIds,
         };
+
+      if (argv.databaseBackend) {
+        existingConfig.database = {
+          backend: argv.databaseBackend as "leveldb" | "rocksdb",
+          multiProcess: argv.multiProcess,
+        };
+      }
+
       const categoriesData = await validateCategories({ dir });
       const config = await setUpSite({
         constellation,
@@ -294,8 +321,11 @@ yargs(hideBin(process.argv))
         domaines: argv.domain ? [argv.domain] : undefined,
       });
 
+      const existingConfig = await getConfig({ dir: argv.dir });
+
       await createOrbiter({
         constellation,
+        databaseConfig: existingConfig.database as DatabaseConfig,
       });
 
       process.stdin.on("data", async () => {
@@ -355,8 +385,11 @@ yargs(hideBin(process.argv))
         dossier: argv.dir,
       });
 
+      const existingConfig = await getConfig({ dir: argv.dir });
+
       const { orbiter } = await createOrbiter({
         constellation,
+        databaseConfig: existingConfig.database as DatabaseConfig,
       });
 
       wheel.start(chalk.yellow("Authorising account..."));
@@ -400,8 +433,11 @@ yargs(hideBin(process.argv))
         dossier: argv.dir,
       });
 
+      const existingConfig = await getConfig({ dir: argv.dir });
+
       const { orbiter } = await createOrbiter({
         constellation,
+        databaseConfig: existingConfig.database as DatabaseConfig,
       });
 
       wheel.start(chalk.yellow("Authorising account..."));
@@ -441,8 +477,11 @@ yargs(hideBin(process.argv))
         dossier: argv.dir,
       });
 
+      const existingConfig = await getConfig({ dir: argv.dir });
+
       const { orbiter } = await createOrbiter({
         constellation,
+        databaseConfig: existingConfig.database as DatabaseConfig,
       });
 
       wheel.start(chalk.yellow("Authorising account..."));
@@ -481,8 +520,11 @@ yargs(hideBin(process.argv))
         dossier: argv.dir,
       });
 
+      const existingConfig = await getConfig({ dir: argv.dir });
+
       const { orbiter } = await createOrbiter({
         constellation,
+        databaseConfig: existingConfig.database as DatabaseConfig,
       });
 
       // Check if JSON file exists and read it
@@ -593,8 +635,11 @@ yargs(hideBin(process.argv))
       });
 
       try {
+        const existingConfig = await getConfig({ dir });
+
         const { orbiter } = await createOrbiter({
           constellation,
+          databaseConfig: existingConfig.database as DatabaseConfig,
         });
 
         wheel.start(chalk.yellow(`Deleting ${releasesIds.length} releases...`));
