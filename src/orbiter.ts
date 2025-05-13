@@ -956,54 +956,102 @@ export class Orbiter {
     f,
     siteId,
     desiredNResults = 1000,
+    maxRetries = 3,
+    initialDelay = 1000,
   }: {
     f: types.schémaFonctionSuivi<
       { collection: CollectionWithId; contributor: string }[]
     >;
     siteId?: string;
     desiredNResults?: number;
+    maxRetries?: number;
+    initialDelay?: number;
   }): Promise<types.schémaFonctionOublier> {
-    return await suivreFonctionImbriquée({
-      fRacine: async ({
-        fSuivreRacine,
-      }: {
-        fSuivreRacine: (nouvelIdBdCible?: string) => Promise<void>;
-      }): Promise<forgetFunction> => {
-        return await this.followSiteSwarmId({
-          f: fSuivreRacine,
-          siteId,
+    const siteCacheKey = siteId || this.siteId;
+    
+    const connectWithRetry = async (attempt = 0): Promise<types.schémaFonctionOublier> => {
+      try {
+        return await suivreFonctionImbriquée({
+          fRacine: async ({
+            fSuivreRacine,
+          }: {
+            fSuivreRacine: (nouvelIdBdCible?: string) => Promise<void>;
+          }): Promise<forgetFunction> => {
+            const cachedSwarmId = this._siteSwarmIdCache.get(siteCacheKey);
+            if (cachedSwarmId) {
+              await fSuivreRacine(cachedSwarmId);
+              return () => Promise.resolve();
+            }
+
+            return await this.followSiteSwarmId({
+              f: async (id) => {
+                if (id) this._siteSwarmIdCache.set(siteCacheKey, id);
+                await fSuivreRacine(id);
+              },
+              siteId,
+            });
+          },
+          f: ignorerNonDéfinis(f),
+          fSuivre: async ({
+            id,
+            fSuivreBd,
+          }: {
+            id: string;
+            fSuivreBd: types.schémaFonctionSuivi<
+              { collection: CollectionWithId; contributor: string }[]
+            >;
+          }): Promise<forgetFunction> => {
+            try {
+              const { fOublier } =
+                await this.constellation.nuées.suivreDonnéesTableauNuée<Collection>({
+                  idNuée: id,
+                  clefTableau: COLLECTIONS_DB_TABLE_KEY,
+                  f: (collections) =>
+                    fSuivreBd(
+                      collections.map((c) => ({
+                        collection: {
+                          collection: c.élément.données,
+                          id: c.élément.id,
+                        },
+                        contributor: c.idCompte,
+                      })),
+                    ),
+                  nRésultatsDésirés: desiredNResults,
+                  clefsSelonVariables: false,
+                });
+              return fOublier;
+            } catch (error) {
+              if (error instanceof Error && 
+                  error.message.includes("Cannot push value onto an ended pushable")) {
+                console.warn(`Ended pushable error for site ${siteCacheKey} in collections:`, error);
+                this.events.emit("syncError", error, "connection");
+                
+                throw error;
+              }
+              
+              console.error(`Error in suivreDonnéesTableauNuée for site ${siteCacheKey}:`, error);
+              this.events.emit("syncError", error as Error, "collections");
+              throw error;
+            }
+          },
         });
-      },
-      f: ignorerNonDéfinis(f),
-      fSuivre: async ({
-        id,
-        fSuivreBd,
-      }: {
-        id: string;
-        fSuivreBd: types.schémaFonctionSuivi<
-          { collection: CollectionWithId; contributor: string }[]
-        >;
-      }): Promise<forgetFunction> => {
-        const { fOublier } =
-          await this.constellation.nuées.suivreDonnéesTableauNuée<Collection>({
-            idNuée: id,
-            clefTableau: COLLECTIONS_DB_TABLE_KEY,
-            f: (collections) =>
-              fSuivreBd(
-                collections.map((c) => ({
-                  collection: {
-                    collection: c.élément.données,
-                    id: c.élément.id,
-                  },
-                  contributor: c.idCompte,
-                })),
-              ),
-            nRésultatsDésirés: desiredNResults,
-            clefsSelonVariables: false,
-          });
-        return fOublier;
-      },
-    });
+      } catch (error) {
+        if (attempt < maxRetries) {
+          const delay = initialDelay * Math.pow(2, attempt) * (0.5 + Math.random());
+          console.warn(`Error connecting to site ${siteCacheKey} for collections, retrying in ${Math.round(delay)}ms (attempt ${attempt + 1}/${maxRetries})`, error);
+          
+          await new Promise(resolve => setTimeout(resolve, delay));
+          return connectWithRetry(attempt + 1);
+        }
+        
+        console.error(`Failed to connect to site ${siteCacheKey} for collections after ${maxRetries} attempts:`, error);
+        this.events.emit("syncError", error as Error, "connection");
+        
+        return () => Promise.resolve();
+      }
+    };
+    
+    return connectWithRetry();
   }
 
   async listenForSiteFeaturedReleases({
