@@ -89,7 +89,7 @@ interface OrbiterEvents {
   ) => void;
   syncError: (
     error: Error, 
-    source: 'releases' | 'collections' | 'site' | 'connection'
+    source: 'releases' | 'collections' | 'site' | 'connection' | 'featuredReleases'
   ) => void;
   syncProgress: (
     progress: { 
@@ -613,6 +613,7 @@ export class Orbiter {
   events: TypedEmitter<OrbiterEvents>;
   forgetFns: forgetFunction[] = [];
   private _siteSwarmIdCache = new Map<string, string>();
+  private _siteModDbIdCache = new Map<string, string>();
 
   constructor({
     siteId,
@@ -1057,47 +1058,95 @@ export class Orbiter {
   async listenForSiteFeaturedReleases({
     f,
     siteId,
+    maxRetries = 3,
+    initialDelay = 1000,
   }: {
     f: types.schémaFonctionSuivi<{ id: string; featured: FeaturedRelease }[]>;
     siteId?: string;
+    maxRetries?: number;
+    initialDelay?: number;
   }): Promise<types.schémaFonctionOublier> {
-    return await suivreFonctionImbriquée({
-      fRacine: async ({
-        fSuivreRacine,
-      }: {
-        fSuivreRacine: (nouvelIdBdCible?: string) => Promise<void>;
-      }): Promise<forgetFunction> => {
-        return await this.followSiteModDbId({
-          f: fSuivreRacine,
-          siteId,
-        });
-      },
-      f: ignorerNonDéfinis(f),
-      fSuivre: async ({
-        id,
-        fSuivreBd,
-      }: {
-        id: string;
-        fSuivreBd: types.schémaFonctionSuivi<
-          { id: string; featured: FeaturedRelease }[]
-        >;
-      }): Promise<forgetFunction> => {
-        return await this.constellation.bds.suivreDonnéesDeTableauParClef<FeaturedRelease>(
-          {
-            idBd: id,
-            clefTableau: FEATURED_RELEASES_TABLE_KEY,
-            f: async (featured) => {
-              await fSuivreBd(
-                featured.map((x) => ({
-                  id: x.id,
-                  featured: x.données,
-                })),
-              );
-            },
+    const siteCacheKey = siteId || this.siteId;
+    
+    const connectWithRetry = async (attempt = 0): Promise<types.schémaFonctionOublier> => {
+      try {
+        return await suivreFonctionImbriquée({
+          fRacine: async ({
+            fSuivreRacine,
+          }: {
+            fSuivreRacine: (nouvelIdBdCible?: string) => Promise<void>;
+          }): Promise<forgetFunction> => {
+            const cachedModDbId = this._siteModDbIdCache.get(siteCacheKey);
+            if (cachedModDbId) {
+              await fSuivreRacine(cachedModDbId);
+              return () => Promise.resolve();
+            }
+
+            return await this.followSiteModDbId({
+              f: async (id) => {
+                if (id) this._siteModDbIdCache.set(siteCacheKey, id);
+                await fSuivreRacine(id);
+              },
+              siteId,
+            });
           },
-        );
-      },
-    });
+          f: ignorerNonDéfinis(f),
+          fSuivre: async ({
+            id,
+            fSuivreBd,
+          }: {
+            id: string;
+            fSuivreBd: types.schémaFonctionSuivi<
+              { id: string; featured: FeaturedRelease }[]
+            >;
+          }): Promise<forgetFunction> => {
+            try {
+              return await this.constellation.bds.suivreDonnéesDeTableauParClef<FeaturedRelease>(
+                {
+                  idBd: id,
+                  clefTableau: FEATURED_RELEASES_TABLE_KEY,
+                  f: async (featured) => {
+                    await fSuivreBd(
+                      featured.map((x) => ({
+                        id: x.id,
+                        featured: x.données,
+                      })),
+                    );
+                  },
+                },
+              );
+            } catch (error) {
+              if (error instanceof Error && 
+                  error.message.includes("Cannot push value onto an ended pushable")) {
+                console.warn(`Ended pushable error for site ${siteCacheKey} in featured releases:`, error);
+                this.events.emit("syncError", error, "connection");
+                
+                throw error;
+              }
+              
+              console.error(`Error in suivreDonnéesDeTableauParClef for site ${siteCacheKey}:`, error);
+              this.events.emit("syncError", error as Error, "featuredReleases");
+              throw error;
+            }
+          },
+        });
+      } catch (error) {
+        if (attempt < maxRetries) {
+          const delay = initialDelay * Math.pow(2, attempt) * (0.5 + Math.random());
+          console.warn(`Error connecting to site ${siteCacheKey} for featured releases, retrying in ${Math.round(delay)}ms (attempt ${attempt + 1}/${maxRetries})`, error);
+          
+          await new Promise(resolve => setTimeout(resolve, delay));
+          return connectWithRetry(attempt + 1);
+        }
+        
+        console.error(`Failed to connect to site ${siteCacheKey} for featured releases after ${maxRetries} attempts:`, error);
+        this.events.emit("syncError", error as Error, "connection");
+        
+        return () => Promise.resolve();
+      }
+    };
+    
+    return connectWithRetry();
   }
 
   async listenForReleases({
