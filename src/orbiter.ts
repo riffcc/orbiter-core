@@ -71,6 +71,9 @@ interface OrbiterEvents {
     siteId: string;
     variableIds: VariableIds;
   }) => void;
+  "releases": (releases: { release: ReleaseWithId; contributor: string; site: string }[], isPartial: boolean) => void;
+  "collections": (collections: { collection: CollectionWithId; contributor: string; site: string }[], isPartial: boolean) => void;
+  "featured": (featured: { id: string, featured: FeaturedRelease, site: string }[], isPartial: boolean) => void;
 }
 
 type RootDbSchema = {
@@ -576,6 +579,7 @@ export class Orbiter {
   constellation: Constellation;
   events: TypedEmitter<OrbiterEvents>;
   forgetFns: forgetFunction[] = [];
+  private _siteSwarmIdCache = new Map<string, string>();
 
   constructor({
     siteId,
@@ -812,8 +816,18 @@ export class Orbiter {
       }: {
         fSuivreRacine: (nouvelIdBdCible?: string) => Promise<void>;
       }): Promise<forgetFunction> => {
+        const siteCacheKey = siteId || this.siteId;
+        const cachedSwarmId = this._siteSwarmIdCache.get(siteCacheKey);
+        if (cachedSwarmId) {
+          await fSuivreRacine(cachedSwarmId);
+          return () => Promise.resolve();
+        }
+        
         return await this.followSiteSwarmId({
-          f: fSuivreRacine,
+          f: async (id) => {
+            if (id) this._siteSwarmIdCache.set(siteCacheKey, id);
+            await fSuivreRacine(id);
+          },
           siteId,
         });
       },
@@ -951,7 +965,8 @@ export class Orbiter {
     f,
   }: {
     f: types.schémaFonctionSuivi<
-      { release: ReleaseWithId; contributor: string; site: string }[]
+      { release: ReleaseWithId; contributor: string; site: string }[],
+      boolean // Added boolean parameter to indicate partial sync
     >;
   }): Promise<types.schémaFonctionOublier> {
     type SiteInfo = {
@@ -960,6 +975,7 @@ export class Orbiter {
       fForget?: forgetFunction;
     };
     const siteInfos: { [site: string]: SiteInfo } = {};
+    const allKnownSites: Set<string> = new Set();
 
     let cancelled = false;
     const lock = new Lock();
@@ -972,7 +988,12 @@ export class Orbiter {
         .map((s) => (s[1].entries || []).map((r) => ({ ...r, site: s[0] })))
         .flat()
         .filter((r) => !blockedCids.includes(r.release.release.file));
-      await f(releases);
+      
+      const isPartialSync = allKnownSites.size > Object.keys(siteInfos).length;
+      
+      this.events.emit("releases", releases, isPartialSync);
+      
+      await f(releases, isPartialSync);
     };
 
     const fFollowTrustedSites = async (
@@ -983,6 +1004,8 @@ export class Orbiter {
         [TRUSTED_SITES_SITE_ID_COL]: this.siteId,
         [TRUSTED_SITES_NAME_COL]: "Me !",
       });
+      
+      sitesList.forEach(site => allKnownSites.add(site[TRUSTED_SITES_SITE_ID_COL]));
 
       await lock.acquire();
       if (cancelled) return;
@@ -994,32 +1017,42 @@ export class Orbiter {
         (s) => !sitesList.some((x) => x.siteId === s),
       );
 
-      for (const site of newSites) {
+      await Promise.all(newSites.map(async (site) => {
         const fsForgetSite: types.schémaFonctionOublier[] = [];
-
         const { siteId } = site;
         siteInfos[siteId] = {};
-        this.listenForSiteBlockedReleases({
-          f: async (cids) => {
-            siteInfos[siteId].blockedCids = cids?.map((c) => c.cid);
-            await fFinal();
-          },
-          siteId: site.siteId,
-        }).then((fForget) => fsForgetSite.push(fForget));
-
-        this.listenForSiteReleases({
-          f: async (entries) => {
-            siteInfos[siteId].entries = entries;
-            await fFinal();
-          },
-          siteId: site.siteId,
-        }).then((fOublier) => fsForgetSite.push(fOublier));
+        
+        await Promise.all([
+          // Listen for blocked releases
+          this.listenForSiteBlockedReleases({
+            f: async (cids) => {
+              siteInfos[siteId].blockedCids = cids?.map((c) => c.cid);
+              await fFinal();
+            },
+            siteId: site.siteId,
+          }).then((fForget) => {
+            fsForgetSite.push(fForget);
+            return fForget;
+          }),
+          
+          this.listenForSiteReleases({
+            f: async (entries) => {
+              siteInfos[siteId].entries = entries;
+              await fFinal();
+            },
+            siteId: site.siteId,
+          }).then((fOublier) => {
+            fsForgetSite.push(fOublier);
+            return fOublier;
+          })
+        ]);
 
         siteInfos[siteId].fForget = async () => {
           await Promise.all(fsForgetSite.map((f) => f()));
         };
+        
         await fFinal();
-      }
+      }));
       for (const site of obsoleteSites) {
         const { fForget } = siteInfos[site];
         if (fForget) await fForget();
@@ -1057,7 +1090,8 @@ export class Orbiter {
     f,
   }: {
     f: types.schémaFonctionSuivi<
-      { collection: CollectionWithId; contributor: string; site: string }[]
+      { collection: CollectionWithId; contributor: string; site: string }[],
+      boolean // Added boolean parameter to indicate partial sync
     >;
   }): Promise<types.schémaFonctionOublier> {
     type SiteInfo = {
@@ -1065,6 +1099,7 @@ export class Orbiter {
       fForget?: forgetFunction;
     };
     const siteInfos: { [site: string]: SiteInfo } = {};
+    const allKnownSites: Set<string> = new Set();
 
     let cancelled = false;
     const lock = new Lock();
@@ -1073,7 +1108,12 @@ export class Orbiter {
       const collections = Object.entries(siteInfos)
         .map((s) => (s[1].entries || []).map((r) => ({ ...r, site: s[0] })))
         .flat();
-      await f(collections);
+      
+      const isPartialSync = allKnownSites.size > Object.keys(siteInfos).length;
+      
+      this.events.emit("collections", collections, isPartialSync);
+      
+      await f(collections, isPartialSync);
     };
 
     const fFollowTrustedSites = async (
@@ -1084,6 +1124,8 @@ export class Orbiter {
         [TRUSTED_SITES_SITE_ID_COL]: this.siteId,
         [TRUSTED_SITES_NAME_COL]: "Me !",
       });
+      
+      sitesList.forEach(site => allKnownSites.add(site[TRUSTED_SITES_SITE_ID_COL]));
 
       await lock.acquire();
       if (cancelled) return;
@@ -1095,25 +1137,29 @@ export class Orbiter {
         (s) => !sitesList.some((x) => x.siteId === s),
       );
 
-      for (const site of newSites) {
+      await Promise.all(newSites.map(async (site) => {
         const fsForgetSite: types.schémaFonctionOublier[] = [];
-
         const { siteId } = site;
         siteInfos[siteId] = {};
-
-        this.listenForSiteCollections({
+        
+        // Listen for site collections
+        await this.listenForSiteCollections({
           f: async (entries) => {
             siteInfos[siteId].entries = entries;
             await fFinal();
           },
           siteId: site.siteId,
-        }).then((fOublier) => fsForgetSite.push(fOublier));
+        }).then((fOublier) => {
+          fsForgetSite.push(fOublier);
+          return fOublier;
+        });
 
         siteInfos[siteId].fForget = async () => {
           await Promise.all(fsForgetSite.map((f) => f()));
         };
+        
         await fFinal();
-      }
+      }));
       for (const site of obsoleteSites) {
         const { fForget } = siteInfos[site];
         if (fForget) await fForget();
