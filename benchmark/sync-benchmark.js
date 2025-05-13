@@ -1,18 +1,21 @@
 import { Orbiter } from "../dist/index.js";
 import { saveConfig, configIsComplete, getConfig } from "../dist/config.js";
 import { créerConstellation } from "constl-ipa-fork";
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
+import fs from "fs";
+import path from "path";
+import os from "os";
 
 const MAX_LENSES = 50;
 const TARGET_SYNC_TIME_MS = 3000;
 const STEP_SIZE = 5;
 
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function createTempLensDir(id) {
-  const tempDir = path.join(os.tmpdir(), `orbiter-benchmark-lens-${id}-${Date.now()}`);
+  const tempDir = path.join(
+    os.tmpdir(),
+    `orbiter-benchmark-lens-${id}-${Date.now()}`,
+  );
   fs.mkdirSync(tempDir, { recursive: true });
   return tempDir;
 }
@@ -27,40 +30,42 @@ async function configureLens(dir, id) {
       trustedSites: `trusted-sites-${siteId}`,
       blockedReleases: `blocked-releases-${siteId}`,
       featuredReleases: `featured-releases-${siteId}`,
-      contentCategories: `content-categories-${siteId}`
-    }
+      contentCategories: `content-categories-${siteId}`,
+    },
   };
-  
+
   await saveConfig({
     dir,
     config,
-    mode: 'json'
+    mode: "json",
   });
-  
+
   return config;
 }
 
 async function createLens(id) {
   console.log(`Creating lens ${id}...`);
-  
+
   const lensDir = await createTempLensDir(id);
   await configureLens(lensDir, id);
-  
+
   const constellation = créerConstellation({
     protocoles: ["/riffcc/1.0.0"],
     dossier: lensDir,
     filtreTransport: (transport) => {
-      if (transport.remoteAddr && 
-          (transport.remoteAddr.includes('127.0.0.1') || 
-           transport.remoteAddr.includes('localhost')) && 
-          !transport.remoteAddr.includes('/p2p-circuit/')) {
+      if (
+        transport.remoteAddr &&
+        (transport.remoteAddr.includes("127.0.0.1") ||
+          transport.remoteAddr.includes("localhost")) &&
+        !transport.remoteAddr.includes("/p2p-circuit/")
+      ) {
         return false;
       }
       return true;
-    }
+    },
   });
-  
-  await new Promise(resolve => {
+
+  await new Promise((resolve) => {
     const checkInit = () => {
       if (constellation.prêt) {
         resolve();
@@ -70,42 +75,45 @@ async function createLens(id) {
     };
     checkInit();
   });
-  
+
   try {
     const config = await getConfig({ dir: lensDir });
     if (!configIsComplete(config)) {
       throw new Error(`Configuration for lens ${id} is incomplete`);
     }
-    
-    const lens = new Orbiter({ 
+
+    const lens = new Orbiter({
       constellation,
       siteId: config.siteId,
-      variableIds: config.variableIds
+      variableIds: config.variableIds,
     });
-    
+
     lens.tempDir = lensDir; // Store temp directory for cleanup later
     console.log(`Created lens ${id} with site ID: ${lens.siteId}`);
-    
+
     try {
       await lens.addRelease({
         contentName: `Test Release ${id}`,
         file: `QmTest${id}`,
         thumbnail: `QmThumb${id}`,
         author: `Author ${id}`,
-        metadata: { description: `Test release ${id}` }
+        metadata: { description: `Test release ${id}` },
       });
       console.log(`Added test release to lens ${id}`);
     } catch (error) {
       console.error(`Error adding release to lens ${id}:`, error);
     }
-    
+
     return lens;
   } catch (error) {
     console.error(`Error creating lens ${id}:`, error);
     try {
       fs.rmSync(lensDir, { recursive: true, force: true });
     } catch (cleanupError) {
-      console.error(`Error cleaning up temp directory for lens ${id}:`, cleanupError);
+      console.error(
+        `Error cleaning up temp directory for lens ${id}:`,
+        cleanupError,
+      );
     }
     throw error;
   }
@@ -113,7 +121,7 @@ async function createLens(id) {
 
 async function benchmarkSync(numLenses) {
   console.log(`\n=== BENCHMARK: ${numLenses} LENSES ===`);
-  
+
   const lenses = [];
   for (let i = 0; i < numLenses; i++) {
     try {
@@ -123,11 +131,11 @@ async function benchmarkSync(numLenses) {
       console.error(`Error creating lens ${i}:`, error);
     }
   }
-  
+
   console.log(`Created ${lenses.length} lenses`);
-  
+
   await sleep(1000);
-  
+
   console.log("Setting up trust relationships...");
   for (let i = 0; i < lenses.length; i++) {
     for (let j = 0; j < lenses.length; j++) {
@@ -135,7 +143,7 @@ async function benchmarkSync(numLenses) {
         try {
           await lenses[i].trustSite({
             siteId: `benchmark-lens-${j}`,
-            name: `Benchmark Lens ${j}`
+            name: `Benchmark Lens ${j}`,
           });
         } catch (error) {
           console.error(`Error trusting lens ${j} from lens ${i}:`, error);
@@ -143,25 +151,29 @@ async function benchmarkSync(numLenses) {
       }
     }
   }
-  
+
   console.log("Starting sync benchmark...");
-  
+
   const testLens = lenses[0];
-  
+
   let syncComplete = false;
   let syncStartTime = 0;
   let syncEndTime = 0;
   let partialSyncTime = 0;
   let firstContentTime = 0;
-  
+
   testLens.events.on("syncProgress", (progress) => {
-    if (progress.type === "releases" && progress.loaded > 0 && firstContentTime === 0) {
+    if (
+      progress.type === "releases" &&
+      progress.loaded > 0 &&
+      firstContentTime === 0
+    ) {
       firstContentTime = Date.now();
       partialSyncTime = firstContentTime - syncStartTime;
       console.log(`First content available after ${partialSyncTime}ms`);
     }
   });
-  
+
   testLens.events.on("syncComplete", (type) => {
     if (type === "releases" && !syncComplete) {
       syncComplete = true;
@@ -170,9 +182,9 @@ async function benchmarkSync(numLenses) {
       console.log(`Complete sync finished after ${totalSyncTime}ms`);
     }
   });
-  
+
   syncStartTime = Date.now();
-  
+
   testLens.listenForReleases({
     f: (releases) => {
       if (releases && releases.length > 0 && firstContentTime === 0) {
@@ -180,27 +192,27 @@ async function benchmarkSync(numLenses) {
         partialSyncTime = firstContentTime - syncStartTime;
         console.log(`First content received after ${partialSyncTime}ms`);
       }
-    }
+    },
   });
-  
+
   const timeout = 60000;
   const startWait = Date.now();
-  
-  while (!syncComplete && (Date.now() - startWait < timeout)) {
+
+  while (!syncComplete && Date.now() - startWait < timeout) {
     await sleep(100);
   }
-  
+
   if (!syncComplete) {
     console.log(`Sync timed out after ${timeout}ms`);
     syncEndTime = Date.now();
   }
-  
+
   const results = {
     numLenses,
     firstContentTime: partialSyncTime || null,
-    totalSyncTime: syncEndTime - syncStartTime
+    totalSyncTime: syncEndTime - syncStartTime,
   };
-  
+
   for (const lens of lenses) {
     try {
       await lens.constellation.fermer();
@@ -211,26 +223,28 @@ async function benchmarkSync(numLenses) {
       console.error("Error closing constellation:", error);
     }
   }
-  
+
   return results;
 }
 
 async function findMaxLensesSupported() {
-  console.log(`\n=== FINDING MAX LENSES WITH SYNC TIME UNDER ${TARGET_SYNC_TIME_MS}ms ===\n`);
-  
+  console.log(
+    `\n=== FINDING MAX LENSES WITH SYNC TIME UNDER ${TARGET_SYNC_TIME_MS}ms ===\n`,
+  );
+
   const results = [];
   let numLenses = STEP_SIZE;
   let maxLenses = 0;
-  
+
   while (numLenses <= MAX_LENSES) {
     try {
       const result = await benchmarkSync(numLenses);
       results.push(result);
-      
+
       console.log(`\nResults for ${numLenses} lenses:`);
       console.log(`- First content available: ${result.firstContentTime}ms`);
       console.log(`- Total sync time: ${result.totalSyncTime}ms`);
-      
+
       if (result.totalSyncTime <= TARGET_SYNC_TIME_MS) {
         maxLenses = numLenses;
         numLenses += STEP_SIZE;
@@ -242,12 +256,16 @@ async function findMaxLensesSupported() {
       break;
     }
   }
-  
+
   console.log(`\n=== BENCHMARK SUMMARY ===`);
-  console.log(`Maximum lenses supported with sync time under ${TARGET_SYNC_TIME_MS}ms: ~${maxLenses}`);
+  console.log(
+    `Maximum lenses supported with sync time under ${TARGET_SYNC_TIME_MS}ms: ~${maxLenses}`,
+  );
   console.log(`\nDetailed results:`);
-  results.forEach(r => {
-    console.log(`${r.numLenses} lenses: ${r.firstContentTime}ms to first content, ${r.totalSyncTime}ms total sync time`);
+  results.forEach((r) => {
+    console.log(
+      `${r.numLenses} lenses: ${r.firstContentTime}ms to first content, ${r.totalSyncTime}ms total sync time`,
+    );
   });
 }
 
