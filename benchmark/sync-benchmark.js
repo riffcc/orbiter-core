@@ -11,7 +11,7 @@ async function createLens(id) {
   console.log(`Creating lens ${id}...`);
   
   const constellation = créerConstellation({
-    protocoles: ["riffcc"],
+    protocoles: ["/riffcc/1.0.0"],
     filtreTransport: (transport) => {
       if (transport.remoteAddr && 
           (transport.remoteAddr.includes('127.0.0.1') || 
@@ -34,18 +34,24 @@ async function createLens(id) {
     checkInit();
   });
   
-  const lens = new Orbiter({
-    siteId: `benchmark-lens-${id}`,
+  const lens = await Orbiter.createOrbiter({
     constellation
   });
   
-  await lens.addRelease({
-    contentName: `Test Release ${id}`,
-    file: `QmTest${id}`,
-    thumbnail: `QmThumb${id}`,
-    author: `Author ${id}`,
-    metadata: { description: `Test release ${id}` }
-  });
+  console.log(`Created lens ${id} with site ID: ${lens.siteId}`);
+  
+  try {
+    await lens.addRelease({
+      contentName: `Test Release ${id}`,
+      file: `QmTest${id}`,
+      thumbnail: `QmThumb${id}`,
+      author: `Author ${id}`,
+      metadata: { description: `Test release ${id}` }
+    });
+    console.log(`Added test release to lens ${id}`);
+  } catch (error) {
+    console.error(`Error adding release to lens ${id}:`, error);
+  }
   
   return lens;
 }
