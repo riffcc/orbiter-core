@@ -127,15 +127,15 @@ yargs(hideBin(process.argv))
         })
         .option("database-backend", {
           alias: "db",
-          describe: "Database backend to use (leveldb or rocksdb).",
+          describe: "Database backend to use (leveldb, rocksdb, or many-level).",
           type: "string",
-          choices: ["leveldb", "rocksdb"],
+          choices: ["leveldb", "rocksdb", "many-level"],
           default: "leveldb",
         })
         .option("multi-process", {
           alias: "mp",
           describe:
-            "Enable multi-process support for database (requires rocksdb).",
+            "Enable multi-process support for database (requires many-level).",
           type: "boolean",
           default: false,
         });

@@ -2490,22 +2490,30 @@ export const createOrbiter = async ({
   }
 
   if (databaseConfig) {
-    if (databaseConfig.backend === "rocksdb") {
+    if (databaseConfig.backend === "many-level") {
       try {
-        // For RocksDB, we'll pass the configuration to Constellation
-        console.log("Using RocksDB as database backend");
+        // For many-level, we'll pass the configuration to Constellation
+        console.log("Using many-level as database backend");
 
-        process.env.ORBIT_DB_BACKEND = "rocksdb";
+        process.env.ORBIT_DB_BACKEND = "many-level";
 
         if (databaseConfig.multiProcess) {
-          console.log("Enabling multi-process support for RocksDB");
+          console.log("Enabling multi-process support with many-level");
           process.env.ORBIT_DB_MULTIPROCESS = "true";
         }
       } catch (error) {
-        console.error("Failed to configure RocksDB:", error);
+        console.error("Failed to configure many-level:", error);
         throw new Error(
-          "Failed to configure RocksDB. Make sure @nxtedition/rocksdb is installed.",
+          "Failed to configure many-level. Make sure many-level is installed.",
         );
+      }
+    } else if (databaseConfig.backend === "rocksdb") {
+      console.warn("RocksDB support is deprecated. Using many-level instead.");
+      process.env.ORBIT_DB_BACKEND = "many-level";
+      
+      if (databaseConfig.multiProcess) {
+        console.log("Enabling multi-process support with many-level");
+        process.env.ORBIT_DB_MULTIPROCESS = "true";
       }
     }
   }
