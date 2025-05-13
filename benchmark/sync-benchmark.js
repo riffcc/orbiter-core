@@ -1,5 +1,5 @@
-const { Orbiter } = require("../dist");
-const { créerConstellation } = require("constl-ipa-fork");
+import { Orbiter } from "../dist/index.js";
+import { créerConstellation } from "constl-ipa-fork";
 
 const MAX_LENSES = 50;
 const TARGET_SYNC_TIME_MS = 3000;
