@@ -58,7 +58,7 @@ export type VariableIds = Record<(typeof variableIdKeys)[number], string>;
 
 export type PossiblyIncompleteVariableIds = Partial<VariableIds>;
 
-export type DatabaseBackend = "leveldb" | "rocksdb" | "many-level";
+export type DatabaseBackend = "leveldb" | "many-level";
 
 export type DatabaseConfig = {
   backend: DatabaseBackend;
@@ -101,7 +101,7 @@ export const possiblyIncompleteOrbiterConfigSchema: JSONSchemaType<PossiblyIncom
         properties: {
           backend: {
             type: "string",
-            enum: ["leveldb", "rocksdb", "many-level"],
+            enum: ["leveldb", "many-level"],
             nullable: true,
           },
           multiProcess: { type: "boolean", nullable: true },
@@ -128,7 +128,7 @@ export const orbiterConfigSchema: JSONSchemaType<OrbiterConfig> = {
       properties: {
         backend: {
           type: "string",
-          enum: ["leveldb", "rocksdb", "many-level"],
+          enum: ["leveldb", "many-level"],
         },
         multiProcess: { type: "boolean", nullable: true },
       },

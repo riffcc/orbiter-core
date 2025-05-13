@@ -26,6 +26,7 @@ import {
   Release,
   releasesFileSchema,
   DatabaseConfig,
+  DatabaseBackend,
 } from "./types.js";
 import {
   CONFIG_FILE_NAME,
@@ -127,9 +128,9 @@ yargs(hideBin(process.argv))
         })
         .option("database-backend", {
           alias: "db",
-          describe: "Database backend to use (leveldb, rocksdb, or many-level).",
+          describe: "Database backend to use (leveldb or many-level).",
           type: "string",
-          choices: ["leveldb", "rocksdb", "many-level"],
+          choices: ["leveldb", "many-level"],
           default: "leveldb",
         })
         .option("multi-process", {
@@ -158,7 +159,7 @@ yargs(hideBin(process.argv))
 
       if (argv.databaseBackend) {
         existingConfig.database = {
-          backend: argv.databaseBackend as "leveldb" | "rocksdb",
+          backend: argv.databaseBackend as DatabaseBackend,
           multiProcess: argv.multiProcess,
         };
       }

@@ -2507,14 +2507,6 @@ export const createOrbiter = async ({
           "Failed to configure many-level. Make sure many-level is installed.",
         );
       }
-    } else if (databaseConfig.backend === "rocksdb") {
-      console.warn("RocksDB support is deprecated. Using many-level instead.");
-      process.env.ORBIT_DB_BACKEND = "many-level";
-      
-      if (databaseConfig.multiProcess) {
-        console.log("Enabling multi-process support with many-level");
-        process.env.ORBIT_DB_MULTIPROCESS = "true";
-      }
     }
   }
 
