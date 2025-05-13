@@ -1381,7 +1381,7 @@ export class Orbiter {
     f,
     accountId,
   }: {
-    f: types.schémaFonctionSuivi<Uint8Array | null>;
+    f: types.schémaFonctionSuivi<{ image: Uint8Array; idImage: string; } | null>;
     accountId?: string;
   }): Promise<types.schémaFonctionOublier> {
     return await this.constellation.profil.suivreImage({
