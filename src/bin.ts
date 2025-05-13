@@ -22,7 +22,12 @@ import {
   saveConfig,
 } from "@/config.js";
 import { ConfigMode, Release, releasesFileSchema } from "./types.js";
-import { CONFIG_FILE_NAME, DEFAULT_ORBITER_DIR, DEFAULT_VARIABLE_IDS, RELEASES_METADATA_COLUMN } from "./consts.js";
+import {
+  CONFIG_FILE_NAME,
+  DEFAULT_ORBITER_DIR,
+  DEFAULT_VARIABLE_IDS,
+  RELEASES_METADATA_COLUMN,
+} from "./consts.js";
 import { confirm } from "@inquirer/prompts";
 
 const MACHINE_PREFIX = "MACHINE MESSAGE:";
@@ -48,7 +53,7 @@ const followConnections = async ({ ipa }: { ipa: Constellation }) => {
     constellation: [],
   };
   let now = Date.now();
-  const peerID = await ipa.obtIdLibp2p()
+  const peerID = await ipa.obtIdLibp2p();
   const { sfip } = await ipa.attendreSfipEtOrbite();
 
   const fFinale = () => {
@@ -103,17 +108,18 @@ yargs(hideBin(process.argv))
     ["config [--dir <dir>]"],
     "Configure Orbiter",
     (yargs) => {
-      return yargs.option("dir", {
-        alias: "d",
-        describe: "The directory of the Orbiter node.",
-        type: "string",
-        default: DEFAULT_ORBITER_DIR,
-      })
-      .option("ignore-defaults", {
-        alias: "i",
-        description: "Ignore defaults and regenerate all configuration.",
-        type: "boolean",
-      });
+      return yargs
+        .option("dir", {
+          alias: "d",
+          describe: "The directory of the Orbiter node.",
+          type: "string",
+          default: DEFAULT_ORBITER_DIR,
+        })
+        .option("ignore-defaults", {
+          alias: "i",
+          description: "Ignore defaults and regenerate all configuration.",
+          type: "boolean",
+        });
     },
     async (argv) => {
       const wheel = ora(chalk.yellow(`Starting Orbiter...`));
@@ -126,9 +132,16 @@ yargs(hideBin(process.argv))
 
       const existingConfig = await getConfig({ dir });
       if (!argv.ignoreDefaults)
-        existingConfig.variableIds = {...DEFAULT_VARIABLE_IDS, ...existingConfig.variableIds}
-      const categoriesData = await validateCategories({ dir});
-      const config = await setUpSite({ constellation, categoriesData,  ...existingConfig });
+        existingConfig.variableIds = {
+          ...DEFAULT_VARIABLE_IDS,
+          ...existingConfig.variableIds,
+        };
+      const categoriesData = await validateCategories({ dir });
+      const config = await setUpSite({
+        constellation,
+        categoriesData,
+        ...existingConfig,
+      });
       await saveConfig({ dir, config, mode: "json" });
       await constellation.fermer();
       wheel?.succeed(
@@ -434,7 +447,7 @@ yargs(hideBin(process.argv))
 
       wheel.start(chalk.yellow("Authorising account..."));
       await orbiter.untrustSite({
-        siteId: argv.siteId
+        siteId: argv.siteId,
       });
 
       wheel.start(chalk.yellow("Cleaning things up..."));
@@ -462,53 +475,53 @@ yargs(hideBin(process.argv))
     },
     async (argv) => {
       if (!argv.file) throw new Error("JSON File path must be specified.");
-  
+
       const wheel = ora(chalk.yellow(`Starting Orbiter`));
       const constellation = créerConstellation({
         dossier: argv.dir,
       });
-  
+
       const { orbiter } = await createOrbiter({
         constellation,
       });
-  
+
       // Check if JSON file exists and read it
       wheel.start(chalk.yellow("Reading and validating releases file..."));
       const fs = await import("fs");
       const path = await import("path");
       const Ajv = (await import("ajv")).default;
-  
+
       const filePath = path.resolve(argv.file);
       if (!fs.existsSync(filePath)) {
         wheel.fail(chalk.red(`File not found: ${filePath}`));
         await constellation.fermer();
         process.exit(1);
       }
-  
+
       let releasesData: Release<Record<string, unknown>>[];
       try {
         const fileContent = fs.readFileSync(filePath, "utf8");
         const jsonData = JSON.parse(fileContent);
-  
+
         // Validate with AJV
         const ajv = new Ajv({ allErrors: true, allowUnionTypes: true });
         const validate = ajv.compile(releasesFileSchema);
         const valid = validate(jsonData);
-  
+
         if (!valid) {
-          const errors = validate.errors?.map(err =>
-            `${err.instancePath}: ${err.message}`
-          ).join("\n");
+          const errors = validate.errors
+            ?.map((err) => `${err.instancePath}: ${err.message}`)
+            .join("\n");
           throw new Error(`Validation failed:\n${errors}`);
         }
-  
+
         releasesData = jsonData as Release<Record<string, unknown>>[];
       } catch (error) {
         wheel.fail(chalk.red(`Error processing JSON file: ${error.message}`));
         await constellation.fermer();
         process.exit(1);
       }
-  
+
       // Upload releases
       wheel.start(chalk.yellow(`Uploading ${releasesData.length} releases...`));
       try {
@@ -522,15 +535,17 @@ yargs(hideBin(process.argv))
                 : undefined,
             };
             await orbiter.addRelease(release);
-          })
+          }),
         );
-        wheel.succeed(chalk.yellow(`Successfully uploaded ${releasesData.length} releases`));
+        wheel.succeed(
+          chalk.yellow(`Successfully uploaded ${releasesData.length} releases`),
+        );
       } catch (error) {
         wheel.fail(chalk.red(`Error uploading releases: ${error.message}`));
         await constellation.fermer();
         process.exit(1);
       }
-  
+
       // Cleanup
       wheel.start(chalk.yellow("Cleaning things up..."));
       await constellation.fermer();
@@ -544,19 +559,20 @@ yargs(hideBin(process.argv))
     "Delete releases by their IDs",
     (yargs) => {
       return yargs
-      .option("dir", {
-        alias: "d",
-        describe: "The directory of the Orbiter node.",
-        type: "string",
-        default: DEFAULT_ORBITER_DIR,
-      })
-      .option("releases-ids", {
-        alias: "ids",
-        describe: "IDs of the releases to delete (can be specified multiple times)",
-        type: "string",
-        array: true,
-        demandOption: true,
-      });
+        .option("dir", {
+          alias: "d",
+          describe: "The directory of the Orbiter node.",
+          type: "string",
+          default: DEFAULT_ORBITER_DIR,
+        })
+        .option("releases-ids", {
+          alias: "ids",
+          describe:
+            "IDs of the releases to delete (can be specified multiple times)",
+          type: "string",
+          array: true,
+          demandOption: true,
+        });
     },
     async (argv) => {
       const wheel = ora(chalk.yellow(`Starting Orbiter`));
@@ -564,14 +580,18 @@ yargs(hideBin(process.argv))
       const releasesIds = argv.releasesIds;
 
       if (!releasesIds || releasesIds.length === 0) {
-          wheel.fail(chalk.red("At least one release ID must be provided using --releases-ids or -ids."));
-          process.exit(1);
+        wheel.fail(
+          chalk.red(
+            "At least one release ID must be provided using --releases-ids or -ids.",
+          ),
+        );
+        process.exit(1);
       }
 
       const constellation = créerConstellation({
         dossier: dir,
       });
-      
+
       try {
         const { orbiter } = await createOrbiter({
           constellation,
@@ -581,9 +601,11 @@ yargs(hideBin(process.argv))
         await Promise.all(
           releasesIds.map(async (releaseId) => {
             await orbiter.removeRelease(releaseId);
-          })
+          }),
         );
-        wheel.succeed(chalk.yellow(`Successfully deleted ${releasesIds.length} releases`));
+        wheel.succeed(
+          chalk.yellow(`Successfully deleted ${releasesIds.length} releases`),
+        );
       } catch (error) {
         wheel.fail(chalk.red(`Error deteling releases: ${error.message}`));
         await constellation.fermer();
