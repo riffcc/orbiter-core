@@ -71,9 +71,22 @@ interface OrbiterEvents {
     siteId: string;
     variableIds: VariableIds;
   }) => void;
-  "releases": (releases: { release: ReleaseWithId; contributor: string; site: string }[], isPartial: boolean) => void;
-  "collections": (collections: { collection: CollectionWithId; contributor: string; site: string }[], isPartial: boolean) => void;
-  "featured": (featured: { id: string, featured: FeaturedRelease, site: string }[], isPartial: boolean) => void;
+  releases: (
+    releases: { release: ReleaseWithId; contributor: string; site: string }[],
+    isPartial: boolean,
+  ) => void;
+  collections: (
+    collections: {
+      collection: CollectionWithId;
+      contributor: string;
+      site: string;
+    }[],
+    isPartial: boolean,
+  ) => void;
+  featured: (
+    featured: { id: string; featured: FeaturedRelease; site: string }[],
+    isPartial: boolean,
+  ) => void;
 }
 
 type RootDbSchema = {
@@ -208,12 +221,12 @@ const getSwarmDbSchema = ({
   };
 };
 
-export const validateCategories = async ({ dir } : { dir: string }) => {
+export const validateCategories = async ({ dir }: { dir: string }) => {
   let categoriesData = DEFAULT_CONTENT_CATEGORIES;
   const { readFileSync, existsSync } = await import("fs");
   const { join } = await import("path");
   const categoriesPath = join(dir, "contentCategories.json");
-  
+
   if (existsSync(categoriesPath)) {
     categoriesData = JSON.parse(readFileSync(categoriesPath, "utf8"));
     console.log(JSON.stringify(categoriesData, null, 2));
@@ -237,7 +250,7 @@ export const setUpSite = async ({
   constellation: Constellation;
   categoriesData: ContentCategory<ContentCategoryMetadataField>[];
   siteId?: string;
-  variableIds?: PossiblyIncompleteVariableIds
+  variableIds?: PossiblyIncompleteVariableIds;
 }) => {
   // Variables for moderation database
   const trustedSitesSiteIdVar =
@@ -265,7 +278,7 @@ export const setUpSite = async ({
     (await constellation.variables.créerVariable({
       catégorie: "horoDatage",
     }));
-    const featuredReleasesPromotedVar =
+  const featuredReleasesPromotedVar =
     variableIds.featuredReleasesPromotedVar ||
     (await constellation.variables.créerVariable({
       catégorie: "booléen",
@@ -275,22 +288,22 @@ export const setUpSite = async ({
     (await constellation.variables.créerVariable({
       catégorie: "chaîneNonTraductible",
     }));
-    const contentCategoriesCategoryIdVar =
+  const contentCategoriesCategoryIdVar =
     variableIds.contentCategoriesCategoryIdVar ||
     (await constellation.variables.créerVariable({
       catégorie: "chaîneNonTraductible",
     }));
-    const contentCategoriesDisplayNameVar =
+  const contentCategoriesDisplayNameVar =
     variableIds.contentCategoriesDisplayNameVar ||
     (await constellation.variables.créerVariable({
       catégorie: "chaîneNonTraductible",
     }));
-    const contentCategoriesFeaturedVar =
+  const contentCategoriesFeaturedVar =
     variableIds.contentCategoriesFeaturedVar ||
     (await constellation.variables.créerVariable({
       catégorie: "booléen",
     }));
-    const contentCategoriesMetadataSchemaVar =
+  const contentCategoriesMetadataSchemaVar =
     variableIds.contentCategoriesMetadataSchemaVar ||
     (await constellation.variables.créerVariable({
       catégorie: "chaîneNonTraductible",
@@ -328,10 +341,10 @@ export const setUpSite = async ({
       catégorie: "chaîneNonTraductible",
     }));
   const releasesCategoryVar =
-  variableIds.releasesCategoryVar ||
-  (await constellation.variables.créerVariable({
-    catégorie: "chaîneNonTraductible",
-  }));
+    variableIds.releasesCategoryVar ||
+    (await constellation.variables.créerVariable({
+      catégorie: "chaîneNonTraductible",
+    }));
 
   // Variables for collections table
   const collectionsNameVar =
@@ -366,11 +379,13 @@ export const setUpSite = async ({
     }));
 
   // Swarm ID for site
-  let swarmId = siteId ? await constellation.orbite.appliquerFonctionBdOrbite({
-    idBd: siteId,
-    fonction: "get",
-    args: ["swarmId"],
-  }) : undefined;
+  let swarmId = siteId
+    ? await constellation.orbite.appliquerFonctionBdOrbite({
+        idBd: siteId,
+        fonction: "get",
+        args: ["swarmId"],
+      })
+    : undefined;
   if (!swarmId) {
     swarmId = await constellation.nuées.créerNuée({});
 
@@ -407,11 +422,13 @@ export const setUpSite = async ({
     }
   }
 
-  let modDbId = siteId ? await constellation.orbite.appliquerFonctionBdOrbite({
-    idBd: siteId,
-    fonction: "get",
-    args: ["modDb"],
-  }) : undefined;
+  let modDbId = siteId
+    ? await constellation.orbite.appliquerFonctionBdOrbite({
+        idBd: siteId,
+        fonction: "get",
+        args: ["modDb"],
+      })
+    : undefined;
   if (!modDbId) {
     modDbId = await constellation.bds.créerBdDeSchéma({
       schéma: {
@@ -479,8 +496,8 @@ export const setUpSite = async ({
                 idColonne: CONTENT_CATEGORIES_METADATA_SCHEMA,
               },
             ],
-            clef: CONTENT_CATEGORIES_TABLE_KEY
-          }
+            clef: CONTENT_CATEGORIES_TABLE_KEY,
+          },
         ],
       },
     });
@@ -488,10 +505,12 @@ export const setUpSite = async ({
       const vals: types.élémentsBd = {
         [CONTENT_CATEGORIES_CATEGORY_ID]: category.categoryId,
         [CONTENT_CATEGORIES_DISPLAY_NAME]: category.displayName,
-        [CONTENT_CATEGORIES_METADATA_SCHEMA]: JSON.stringify(category.metadataSchema),
-      }
+        [CONTENT_CATEGORIES_METADATA_SCHEMA]: JSON.stringify(
+          category.metadataSchema,
+        ),
+      };
       if (category.featured) {
-        vals[CONTENT_CATEGORIES_FEATURED] = category.featured
+        vals[CONTENT_CATEGORIES_FEATURED] = category.featured;
       }
       await constellation.bds.ajouterÉlémentÀTableauParClef({
         idBd: modDbId,
@@ -511,7 +530,7 @@ export const setUpSite = async ({
     featuredReleasesStartTimeVar,
     featuredReleasesEndTimeVar,
     featuredReleasesPromotedVar,
-    
+
     // blocked releases
     blockedReleasesReleaseIdVar,
 
@@ -822,7 +841,7 @@ export class Orbiter {
           await fSuivreRacine(cachedSwarmId);
           return () => Promise.resolve();
         }
-        
+
         return await this.followSiteSwarmId({
           f: async (id) => {
             if (id) this._siteSwarmIdCache.set(siteCacheKey, id);
@@ -950,10 +969,12 @@ export class Orbiter {
             idBd: id,
             clefTableau: FEATURED_RELEASES_TABLE_KEY,
             f: async (featured) => {
-              await fSuivreBd(featured.map((x) => ({
-                id: x.id,
-                featured: x.données,
-              })))
+              await fSuivreBd(
+                featured.map((x) => ({
+                  id: x.id,
+                  featured: x.données,
+                })),
+              );
             },
           },
         );
@@ -964,10 +985,10 @@ export class Orbiter {
   async listenForReleases({
     f,
   }: {
-    f: types.schémaFonctionSuivi<
-      { release: ReleaseWithId; contributor: string; site: string }[],
-      boolean // Added boolean parameter to indicate partial sync
-    >;
+    f: (
+      releases: { release: ReleaseWithId; contributor: string; site: string }[],
+      isPartial: boolean
+    ) => Promise<void>;
   }): Promise<types.schémaFonctionOublier> {
     type SiteInfo = {
       blockedCids?: string[];
@@ -988,11 +1009,11 @@ export class Orbiter {
         .map((s) => (s[1].entries || []).map((r) => ({ ...r, site: s[0] })))
         .flat()
         .filter((r) => !blockedCids.includes(r.release.release.file));
-      
+
       const isPartialSync = allKnownSites.size > Object.keys(siteInfos).length;
-      
+
       this.events.emit("releases", releases, isPartialSync);
-      
+
       await f(releases, isPartialSync);
     };
 
@@ -1004,8 +1025,10 @@ export class Orbiter {
         [TRUSTED_SITES_SITE_ID_COL]: this.siteId,
         [TRUSTED_SITES_NAME_COL]: "Me !",
       });
-      
-      sitesList.forEach(site => allKnownSites.add(site[TRUSTED_SITES_SITE_ID_COL]));
+
+      sitesList.forEach((site) =>
+        allKnownSites.add(site[TRUSTED_SITES_SITE_ID_COL]),
+      );
 
       await lock.acquire();
       if (cancelled) return;
@@ -1017,42 +1040,44 @@ export class Orbiter {
         (s) => !sitesList.some((x) => x.siteId === s),
       );
 
-      await Promise.all(newSites.map(async (site) => {
-        const fsForgetSite: types.schémaFonctionOublier[] = [];
-        const { siteId } = site;
-        siteInfos[siteId] = {};
-        
-        await Promise.all([
-          // Listen for blocked releases
-          this.listenForSiteBlockedReleases({
-            f: async (cids) => {
-              siteInfos[siteId].blockedCids = cids?.map((c) => c.cid);
-              await fFinal();
-            },
-            siteId: site.siteId,
-          }).then((fForget) => {
-            fsForgetSite.push(fForget);
-            return fForget;
-          }),
-          
-          this.listenForSiteReleases({
-            f: async (entries) => {
-              siteInfos[siteId].entries = entries;
-              await fFinal();
-            },
-            siteId: site.siteId,
-          }).then((fOublier) => {
-            fsForgetSite.push(fOublier);
-            return fOublier;
-          })
-        ]);
+      await Promise.all(
+        newSites.map(async (site) => {
+          const fsForgetSite: types.schémaFonctionOublier[] = [];
+          const { siteId } = site;
+          siteInfos[siteId] = {};
 
-        siteInfos[siteId].fForget = async () => {
-          await Promise.all(fsForgetSite.map((f) => f()));
-        };
-        
-        await fFinal();
-      }));
+          await Promise.all([
+            // Listen for blocked releases
+            this.listenForSiteBlockedReleases({
+              f: async (cids) => {
+                siteInfos[siteId].blockedCids = cids?.map((c) => c.cid);
+                await fFinal();
+              },
+              siteId: site.siteId,
+            }).then((fForget) => {
+              fsForgetSite.push(fForget);
+              return fForget;
+            }),
+
+            this.listenForSiteReleases({
+              f: async (entries) => {
+                siteInfos[siteId].entries = entries;
+                await fFinal();
+              },
+              siteId: site.siteId,
+            }).then((fOublier) => {
+              fsForgetSite.push(fOublier);
+              return fOublier;
+            }),
+          ]);
+
+          siteInfos[siteId].fForget = async () => {
+            await Promise.all(fsForgetSite.map((f) => f()));
+          };
+
+          await fFinal();
+        }),
+      );
       for (const site of obsoleteSites) {
         const { fForget } = siteInfos[site];
         if (fForget) await fForget();
@@ -1089,10 +1114,10 @@ export class Orbiter {
   async listenForCollections({
     f,
   }: {
-    f: types.schémaFonctionSuivi<
-      { collection: CollectionWithId; contributor: string; site: string }[],
-      boolean // Added boolean parameter to indicate partial sync
-    >;
+    f: (
+      collections: { collection: CollectionWithId; contributor: string; site: string }[],
+      isPartial: boolean
+    ) => Promise<void>;
   }): Promise<types.schémaFonctionOublier> {
     type SiteInfo = {
       entries?: { collection: CollectionWithId; contributor: string }[];
@@ -1108,11 +1133,11 @@ export class Orbiter {
       const collections = Object.entries(siteInfos)
         .map((s) => (s[1].entries || []).map((r) => ({ ...r, site: s[0] })))
         .flat();
-      
+
       const isPartialSync = allKnownSites.size > Object.keys(siteInfos).length;
-      
+
       this.events.emit("collections", collections, isPartialSync);
-      
+
       await f(collections, isPartialSync);
     };
 
@@ -1124,8 +1149,10 @@ export class Orbiter {
         [TRUSTED_SITES_SITE_ID_COL]: this.siteId,
         [TRUSTED_SITES_NAME_COL]: "Me !",
       });
-      
-      sitesList.forEach(site => allKnownSites.add(site[TRUSTED_SITES_SITE_ID_COL]));
+
+      sitesList.forEach((site) =>
+        allKnownSites.add(site[TRUSTED_SITES_SITE_ID_COL]),
+      );
 
       await lock.acquire();
       if (cancelled) return;
@@ -1137,29 +1164,31 @@ export class Orbiter {
         (s) => !sitesList.some((x) => x.siteId === s),
       );
 
-      await Promise.all(newSites.map(async (site) => {
-        const fsForgetSite: types.schémaFonctionOublier[] = [];
-        const { siteId } = site;
-        siteInfos[siteId] = {};
-        
-        // Listen for site collections
-        await this.listenForSiteCollections({
-          f: async (entries) => {
-            siteInfos[siteId].entries = entries;
-            await fFinal();
-          },
-          siteId: site.siteId,
-        }).then((fOublier) => {
-          fsForgetSite.push(fOublier);
-          return fOublier;
-        });
+      await Promise.all(
+        newSites.map(async (site) => {
+          const fsForgetSite: types.schémaFonctionOublier[] = [];
+          const { siteId } = site;
+          siteInfos[siteId] = {};
 
-        siteInfos[siteId].fForget = async () => {
-          await Promise.all(fsForgetSite.map((f) => f()));
-        };
-        
-        await fFinal();
-      }));
+          // Listen for site collections
+          await this.listenForSiteCollections({
+            f: async (entries) => {
+              siteInfos[siteId].entries = entries;
+              await fFinal();
+            },
+            siteId: site.siteId,
+          }).then((fOublier) => {
+            fsForgetSite.push(fOublier);
+            return fOublier;
+          });
+
+          siteInfos[siteId].fForget = async () => {
+            await Promise.all(fsForgetSite.map((f) => f()));
+          };
+
+          await fFinal();
+        }),
+      );
       for (const site of obsoleteSites) {
         const { fForget } = siteInfos[site];
         if (fForget) await fForget();
@@ -1284,8 +1313,8 @@ export class Orbiter {
         fSuivi: types.schémaFonctionSuivi<CollectionWithId[]>,
       ): Promise<types.schémaFonctionOublier> => {
         return await this.listenForCollections({
-          f: async (collections) =>
-            fSuivi(collections.map((c) => c.collection)),
+          f: async (collections: { collection: CollectionWithId; contributor: string; site: string }[], _isPartial: boolean) =>
+            fSuivi(collections.map((c: { collection: CollectionWithId; contributor: string; site: string }) => c.collection)),
         });
       },
     );
@@ -1427,7 +1456,7 @@ export class Orbiter {
     f,
     accountId,
   }: {
-    f: types.schémaFonctionSuivi<{ image: Uint8Array; idImage: string; } | null>;
+    f: types.schémaFonctionSuivi<{ image: Uint8Array; idImage: string } | null>;
     accountId?: string;
   }): Promise<types.schémaFonctionOublier> {
     return await this.constellation.profil.suivreImage({
@@ -1487,7 +1516,7 @@ export class Orbiter {
     cid,
     startTime,
     endTime,
-    promoted
+    promoted,
   }: {
     cid: string;
     startTime: string;
@@ -1526,7 +1555,6 @@ export class Orbiter {
       vals: removeUndefined(featuredRelease),
     });
   }
-
 
   async followIsModerator({
     f,
@@ -1711,20 +1739,29 @@ export class Orbiter {
     const vals: types.élémentsBd = {
       [CONTENT_CATEGORIES_CATEGORY_ID]: category.categoryId,
       [CONTENT_CATEGORIES_DISPLAY_NAME]: category.displayName,
-      [CONTENT_CATEGORIES_METADATA_SCHEMA]: JSON.stringify(category.metadataSchema),
-    }
+      [CONTENT_CATEGORIES_METADATA_SCHEMA]: JSON.stringify(
+        category.metadataSchema,
+      ),
+    };
     if (category.featured) {
-      vals[CONTENT_CATEGORIES_FEATURED] = category.featured
+      vals[CONTENT_CATEGORIES_FEATURED] = category.featured;
     }
-    const elementIds = await this.constellation.bds.ajouterÉlémentÀTableauParClef({
-      idBd: modDbId,
-      clefTableau: CONTENT_CATEGORIES_TABLE_KEY,
-      vals,
-    });
+    const elementIds =
+      await this.constellation.bds.ajouterÉlémentÀTableauParClef({
+        idBd: modDbId,
+        clefTableau: CONTENT_CATEGORIES_TABLE_KEY,
+        vals,
+      });
     return elementIds[0];
   }
 
-  async editCategory({ elementId, category }: { elementId: string; category: Partial<ContentCategory> }): Promise<void> {
+  async editCategory({
+    elementId,
+    category,
+  }: {
+    elementId: string;
+    category: Partial<ContentCategory>;
+  }): Promise<void> {
     const { modDbId } = await this.orbiterConfig();
 
     await this.constellation.bds.modifierÉlémentDeTableauParClef({
@@ -1751,18 +1788,20 @@ export class Orbiter {
     f: types.schémaFonctionSuivi<ContentCategoryWithId[]>;
   }): Promise<types.schémaFonctionOublier> {
     const { modDbId } = await this.orbiterConfig();
-    
-    return await this.constellation.bds.suivreDonnéesDeTableauParClef<ContentCategory>({
-      idBd: modDbId,
-      clefTableau: CONTENT_CATEGORIES_TABLE_KEY,
-      f: async (categories) => {
-        const mappedCategories = categories.map((c) => ({
-          id: c.id,
-          contentCategory: c.données,
-        }));
-        await f(mappedCategories);
+
+    return await this.constellation.bds.suivreDonnéesDeTableauParClef<ContentCategory>(
+      {
+        idBd: modDbId,
+        clefTableau: CONTENT_CATEGORIES_TABLE_KEY,
+        f: async (categories) => {
+          const mappedCategories = categories.map((c) => ({
+            id: c.id,
+            contentCategory: c.données,
+          }));
+          await f(mappedCategories);
+        },
       },
-    });
+    );
   }
 }
 
