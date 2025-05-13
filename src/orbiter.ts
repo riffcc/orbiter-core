@@ -87,6 +87,20 @@ interface OrbiterEvents {
     featured: { id: string; featured: FeaturedRelease; site: string }[],
     isPartial: boolean,
   ) => void;
+  syncError: (
+    error: Error, 
+    source: 'releases' | 'collections' | 'site' | 'connection'
+  ) => void;
+  syncProgress: (
+    progress: { 
+      total: number; 
+      loaded: number; 
+      type: 'releases' | 'collections' | 'featured' 
+    }
+  ) => void;
+  syncComplete: (
+    type: 'releases' | 'collections' | 'featured'
+  ) => void;
 }
 
 type RootDbSchema = {
@@ -623,6 +637,24 @@ export class Orbiter {
   async _init() {
     const { swarmId, modDbId } = await this.orbiterConfig();
     // await this.constellation.attendreInitialisée()
+    
+    // @ts-ignore - Add transport filter to constellation
+    this.constellation.filtreTransport = (transport: any): boolean => {
+      if (transport && transport.remoteAddr) {
+        const addrStr = String(transport.remoteAddr);
+        
+        if (addrStr.includes('/p2p-circuit/')) {
+          return true;
+        }
+        
+        if (addrStr.includes('/ip4/127.0.0.1/') || addrStr.includes('/ip4/localhost/')) {
+          return false;
+        }
+      }
+      
+      return true;
+    };
+    
     this.forgetFns.push(
       await this.constellation.suivreBd({
         id: this.siteId,
@@ -822,64 +854,102 @@ export class Orbiter {
     f,
     siteId,
     desiredNResults = 1000,
+    maxRetries = 3,
+    initialDelay = 1000,
   }: {
     f: types.schémaFonctionSuivi<
       { release: ReleaseWithId; contributor: string }[]
     >;
     siteId?: string;
     desiredNResults?: number;
+    maxRetries?: number;
+    initialDelay?: number;
   }): Promise<types.schémaFonctionOublier> {
-    return await suivreFonctionImbriquée({
-      fRacine: async ({
-        fSuivreRacine,
-      }: {
-        fSuivreRacine: (nouvelIdBdCible?: string) => Promise<void>;
-      }): Promise<forgetFunction> => {
-        const siteCacheKey = siteId || this.siteId;
-        const cachedSwarmId = this._siteSwarmIdCache.get(siteCacheKey);
-        if (cachedSwarmId) {
-          await fSuivreRacine(cachedSwarmId);
-          return () => Promise.resolve();
-        }
+    const siteCacheKey = siteId || this.siteId;
+    
+    const connectWithRetry = async (attempt = 0): Promise<types.schémaFonctionOublier> => {
+      try {
+        return await suivreFonctionImbriquée({
+          fRacine: async ({
+            fSuivreRacine,
+          }: {
+            fSuivreRacine: (nouvelIdBdCible?: string) => Promise<void>;
+          }): Promise<forgetFunction> => {
+            const cachedSwarmId = this._siteSwarmIdCache.get(siteCacheKey);
+            if (cachedSwarmId) {
+              await fSuivreRacine(cachedSwarmId);
+              return () => Promise.resolve();
+            }
 
-        return await this.followSiteSwarmId({
-          f: async (id) => {
-            if (id) this._siteSwarmIdCache.set(siteCacheKey, id);
-            await fSuivreRacine(id);
+            return await this.followSiteSwarmId({
+              f: async (id) => {
+                if (id) this._siteSwarmIdCache.set(siteCacheKey, id);
+                await fSuivreRacine(id);
+              },
+              siteId,
+            });
           },
-          siteId,
+          f: ignorerNonDéfinis(f),
+          fSuivre: async ({
+            id,
+            fSuivreBd,
+          }: {
+            id: string;
+            fSuivreBd: types.schémaFonctionSuivi<
+              { release: ReleaseWithId; contributor: string }[]
+            >;
+          }): Promise<forgetFunction> => {
+            try {
+              const { fOublier } =
+                await this.constellation.nuées.suivreDonnéesTableauNuée<Release>({
+                  idNuée: id,
+                  clefTableau: RELEASES_DB_TABLE_KEY,
+                  f: (releases) =>
+                    fSuivreBd(
+                      releases.map((r) => ({
+                        release: {
+                          release: r.élément.données,
+                          id: r.élément.id,
+                        },
+                        contributor: r.idCompte,
+                      })),
+                    ),
+                  nRésultatsDésirés: desiredNResults,
+                  clefsSelonVariables: false,
+                });
+              return fOublier;
+            } catch (error) {
+              if (error instanceof Error && 
+                  error.message.includes("Cannot push value onto an ended pushable")) {
+                console.warn(`Ended pushable error for site ${siteCacheKey} in releases:`, error);
+                this.events.emit("syncError", error, "connection");
+                
+                throw error;
+              }
+              
+              console.error(`Error in suivreDonnéesTableauNuée for site ${siteCacheKey}:`, error);
+              this.events.emit("syncError", error as Error, "releases");
+              throw error;
+            }
+          },
         });
-      },
-      f: ignorerNonDéfinis(f),
-      fSuivre: async ({
-        id,
-        fSuivreBd,
-      }: {
-        id: string;
-        fSuivreBd: types.schémaFonctionSuivi<
-          { release: ReleaseWithId; contributor: string }[]
-        >;
-      }): Promise<forgetFunction> => {
-        const { fOublier } =
-          await this.constellation.nuées.suivreDonnéesTableauNuée<Release>({
-            idNuée: id,
-            clefTableau: RELEASES_DB_TABLE_KEY,
-            f: (releases) =>
-              fSuivreBd(
-                releases.map((r) => ({
-                  release: {
-                    release: r.élément.données,
-                    id: r.élément.id,
-                  },
-                  contributor: r.idCompte,
-                })),
-              ),
-            nRésultatsDésirés: desiredNResults,
-            clefsSelonVariables: false,
-          });
-        return fOublier;
-      },
-    });
+      } catch (error) {
+        if (attempt < maxRetries) {
+          const delay = initialDelay * Math.pow(2, attempt) * (0.5 + Math.random());
+          console.warn(`Error connecting to site ${siteCacheKey} for releases, retrying in ${Math.round(delay)}ms (attempt ${attempt + 1}/${maxRetries})`, error);
+          
+          await new Promise(resolve => setTimeout(resolve, delay));
+          return connectWithRetry(attempt + 1);
+        }
+        
+        console.error(`Failed to connect to site ${siteCacheKey} for releases after ${maxRetries} attempts:`, error);
+        this.events.emit("syncError", error as Error, "connection");
+        
+        return () => Promise.resolve();
+      }
+    };
+    
+    return connectWithRetry();
   }
 
   async listenForSiteCollections({
@@ -984,127 +1054,242 @@ export class Orbiter {
 
   async listenForReleases({
     f,
+    includeBlockedReleases = false,
   }: {
     f: (
       releases: { release: ReleaseWithId; contributor: string; site: string }[],
       isPartial: boolean
     ) => Promise<void>;
+    includeBlockedReleases?: boolean;
   }): Promise<types.schémaFonctionOublier> {
     type SiteInfo = {
       blockedCids?: string[];
       entries?: { release: ReleaseWithId; contributor: string }[];
       fForget?: forgetFunction;
+      connecting?: boolean;
+      error?: Error;
     };
     const siteInfos: { [site: string]: SiteInfo } = {};
     const allKnownSites: Set<string> = new Set();
 
+    const CONNECTION_POOL_LIMIT = 25; // Higher limit as per user feedback
+    const siteQueue: string[] = [];
+    let activeConnections = 0;
+
     let cancelled = false;
     const lock = new Lock();
 
+    const processNextSite = async () => {
+      if (cancelled) return;
+      
+      if (activeConnections >= CONNECTION_POOL_LIMIT || siteQueue.length === 0) {
+        return;
+      }
+
+      const siteId = siteQueue.shift()!;
+      
+      if (siteInfos[siteId]?.connecting || (siteInfos[siteId]?.entries !== undefined)) {
+        processNextSite();
+        return;
+      }
+
+      if (!siteInfos[siteId]) {
+        siteInfos[siteId] = {};
+      }
+      siteInfos[siteId].connecting = true;
+      activeConnections++;
+
+      try {
+        const fsForgetSite: types.schémaFonctionOublier[] = [];
+
+        await Promise.all([
+          // Listen for blocked releases
+          this.listenForSiteBlockedReleases({
+            f: async (cids) => {
+              if (cancelled) return;
+              if (siteInfos[siteId]) {
+                siteInfos[siteId].blockedCids = cids?.map((c) => c.cid);
+                await fFinal();
+              }
+            },
+            siteId: siteId,
+          }).then((fForget) => {
+            fsForgetSite.push(fForget);
+            return fForget;
+          }).catch((error) => {
+            console.error(`Error listening for blocked releases from site ${siteId}:`, error);
+            this.events.emit("syncError", error, "releases");
+          }),
+
+          this.listenForSiteReleases({
+            f: async (entries) => {
+              if (cancelled) return;
+              if (siteInfos[siteId]) {
+                siteInfos[siteId].entries = entries;
+                await fFinal();
+              }
+            },
+            siteId: siteId,
+          }).then((fOublier) => {
+            fsForgetSite.push(fOublier);
+            return fOublier;
+          }).catch((error) => {
+            console.error(`Error listening for releases from site ${siteId}:`, error);
+            this.events.emit("syncError", error, "releases");
+          }),
+        ]);
+
+        siteInfos[siteId].fForget = async () => {
+          try {
+            await Promise.all(fsForgetSite.map((f) => f().catch(e => {
+              console.warn(`Error during forget function for site ${siteId}:`, e);
+            })));
+          } catch (error) {
+            console.error(`Error in forget function for site ${siteId}:`, error);
+          }
+        };
+
+        this.events.emit("syncProgress", {
+          total: allKnownSites.size,
+          loaded: Object.keys(siteInfos).filter(id => siteInfos[id].entries !== undefined).length,
+          type: "releases"
+        });
+
+        await fFinal();
+      } catch (error) {
+        console.error(`Error processing site ${siteId}:`, error);
+        siteInfos[siteId].error = error as Error;
+        this.events.emit("syncError", error as Error, "releases");
+      } finally {
+        if (siteInfos[siteId]) {
+          siteInfos[siteId].connecting = false;
+        }
+        activeConnections--;
+        
+        processNextSite();
+      }
+    };
+
     const fFinal = async () => {
-      const blockedCids = Object.values(siteInfos)
-        .map((s) => s.blockedCids || [])
-        .flat();
-      const releases = Object.entries(siteInfos)
-        .map((s) => (s[1].entries || []).map((r) => ({ ...r, site: s[0] })))
-        .flat()
-        .filter((r) => !blockedCids.includes(r.release.release.file));
+      try {
+        const blockedCids = includeBlockedReleases ? [] : Object.values(siteInfos)
+          .map((s) => s.blockedCids || [])
+          .flat();
+        
+        const releases = Object.entries(siteInfos)
+          .filter(([_, info]) => info.entries !== undefined) // Only include sites with entries
+          .map(([site, info]) => (info.entries || []).map((r) => ({ ...r, site })))
+          .flat()
+          .filter((r) => !blockedCids.includes(r.release.release.file));
 
-      const isPartialSync = allKnownSites.size > Object.keys(siteInfos).length;
+        const isPartialSync = allKnownSites.size > Object.keys(siteInfos).filter(
+          id => siteInfos[id].entries !== undefined
+        ).length;
 
-      this.events.emit("releases", releases, isPartialSync);
+        this.events.emit("releases", releases, isPartialSync);
 
-      await f(releases, isPartialSync);
+        await f(releases, isPartialSync);
+      } catch (error) {
+        console.error("Error in fFinal:", error);
+        this.events.emit("syncError", error as Error, "releases");
+      }
     };
 
     const fFollowTrustedSites = async (
       sites?: tableaux.élémentDonnées<TrustedSite>[],
     ) => {
-      const sitesList = (sites || []).map((s) => s.données);
-      sitesList.push({
-        [TRUSTED_SITES_SITE_ID_COL]: this.siteId,
-        [TRUSTED_SITES_NAME_COL]: "Me !",
-      });
+      try {
+        const sitesList = (sites || []).map((s) => s.données);
+        sitesList.push({
+          [TRUSTED_SITES_SITE_ID_COL]: this.siteId,
+          [TRUSTED_SITES_NAME_COL]: "Me !",
+        });
 
-      sitesList.forEach((site) =>
-        allKnownSites.add(site[TRUSTED_SITES_SITE_ID_COL]),
-      );
+        sitesList.forEach((site) =>
+          allKnownSites.add(site[TRUSTED_SITES_SITE_ID_COL]),
+        );
 
-      await lock.acquire();
-      if (cancelled) return;
+        await lock.acquire();
+        if (cancelled) {
+          lock.release();
+          return;
+        }
 
-      const newSites = sitesList.filter(
-        (s) => !Object.keys(siteInfos).includes(s.siteId),
-      );
-      const obsoleteSites = Object.keys(siteInfos).filter(
-        (s) => !sitesList.some((x) => x.siteId === s),
-      );
+        const newSites = sitesList.filter(
+          (s) => !Object.keys(siteInfos).includes(s.siteId),
+        );
+        const obsoleteSites = Object.keys(siteInfos).filter(
+          (s) => !sitesList.some((x) => x.siteId === s),
+        );
 
-      await Promise.all(
-        newSites.map(async (site) => {
-          const fsForgetSite: types.schémaFonctionOublier[] = [];
+        newSites.forEach(site => {
           const { siteId } = site;
-          siteInfos[siteId] = {};
+          if (!siteInfos[siteId]) {
+            siteInfos[siteId] = {};
+          }
+          siteQueue.push(siteId);
+        });
 
-          await Promise.all([
-            // Listen for blocked releases
-            this.listenForSiteBlockedReleases({
-              f: async (cids) => {
-                siteInfos[siteId].blockedCids = cids?.map((c) => c.cid);
-                await fFinal();
-              },
-              siteId: site.siteId,
-            }).then((fForget) => {
-              fsForgetSite.push(fForget);
-              return fForget;
-            }),
+        const processPromises = [];
+        for (let i = 0; i < Math.min(CONNECTION_POOL_LIMIT, siteQueue.length); i++) {
+          processPromises.push(processNextSite());
+        }
+        
+        await Promise.all(processPromises);
 
-            this.listenForSiteReleases({
-              f: async (entries) => {
-                siteInfos[siteId].entries = entries;
-                await fFinal();
-              },
-              siteId: site.siteId,
-            }).then((fOublier) => {
-              fsForgetSite.push(fOublier);
-              return fOublier;
-            }),
-          ]);
+        for (const site of obsoleteSites) {
+          const { fForget } = siteInfos[site];
+          if (fForget) {
+            try {
+              await fForget();
+            } catch (error) {
+              console.error(`Error forgetting site ${site}:`, error);
+            }
+          }
+          delete siteInfos[site];
+        }
 
-          siteInfos[siteId].fForget = async () => {
-            await Promise.all(fsForgetSite.map((f) => f()));
-          };
-
-          await fFinal();
-        }),
-      );
-      for (const site of obsoleteSites) {
-        const { fForget } = siteInfos[site];
-        if (fForget) await fForget();
-        delete siteInfos[site];
+        await fFinal();
+        lock.release();
+      } catch (error) {
+        console.error("Error in fFollowTrustedSites:", error);
+        this.events.emit("syncError", error as Error, "releases");
+        lock.release();
       }
-
-      await fFinal();
-      lock.release();
     };
 
     // Need to call once manually to get the user's own entries to show even if user is offline or
     // the site's master databases are unreachable.
-    await fFollowTrustedSites();
+    try {
+      await fFollowTrustedSites();
+    } catch (error) {
+      console.error("Error in initial fFollowTrustedSites call:", error);
+      this.events.emit("syncError", error as Error, "releases");
+    }
 
     let forgetTrustedSites: types.schémaFonctionOublier;
-    this.followTrustedSites({ f: fFollowTrustedSites }).then(
-      (fForget) => (forgetTrustedSites = fForget),
-    );
+    this.followTrustedSites({ f: fFollowTrustedSites })
+      .then((fForget) => (forgetTrustedSites = fForget))
+      .catch((error) => {
+        console.error("Error setting up trusted sites listener:", error);
+        this.events.emit("syncError", error as Error, "releases");
+      });
 
     const fForget = async () => {
-      cancelled = true;
-      if (forgetTrustedSites) await forgetTrustedSites();
-      await Promise.all(
-        Object.values(siteInfos).map((s) =>
-          s.fForget ? s.fForget() : Promise.resolve(),
-        ),
-      );
+      try {
+        cancelled = true;
+        if (forgetTrustedSites) await forgetTrustedSites();
+        
+        await Promise.all(
+          Object.values(siteInfos).map((s) =>
+            s.fForget ? s.fForget().catch(e => {
+              console.warn("Error during site forget:", e);
+            }) : Promise.resolve(),
+          ),
+        );
+      } catch (error) {
+        console.error("Error in fForget:", error);
+      }
     };
 
     return fForget;
@@ -1122,100 +1307,206 @@ export class Orbiter {
     type SiteInfo = {
       entries?: { collection: CollectionWithId; contributor: string }[];
       fForget?: forgetFunction;
+      connecting?: boolean;
+      error?: Error;
     };
     const siteInfos: { [site: string]: SiteInfo } = {};
     const allKnownSites: Set<string> = new Set();
 
+    const CONNECTION_POOL_LIMIT = 25;
+    const siteQueue: string[] = [];
+    let activeConnections = 0;
+
     let cancelled = false;
     const lock = new Lock();
 
+    const processNextSite = async () => {
+      if (cancelled) return;
+      
+      if (activeConnections >= CONNECTION_POOL_LIMIT || siteQueue.length === 0) {
+        return;
+      }
+
+      const siteId = siteQueue.shift()!;
+      
+      if (siteInfos[siteId]?.connecting || (siteInfos[siteId]?.entries !== undefined)) {
+        processNextSite();
+        return;
+      }
+
+      if (!siteInfos[siteId]) {
+        siteInfos[siteId] = {};
+      }
+      siteInfos[siteId].connecting = true;
+      activeConnections++;
+
+      try {
+        const fsForgetSite: types.schémaFonctionOublier[] = [];
+
+        // Listen for site collections with error handling
+        await this.listenForSiteCollections({
+          f: async (entries) => {
+            if (cancelled) return;
+            if (siteInfos[siteId]) {
+              siteInfos[siteId].entries = entries;
+              await fFinal();
+            }
+          },
+          siteId: siteId,
+        }).then((fOublier) => {
+          fsForgetSite.push(fOublier);
+          return fOublier;
+        }).catch((error) => {
+          console.error(`Error listening for collections from site ${siteId}:`, error);
+          this.events.emit("syncError", error, "collections");
+        });
+
+        siteInfos[siteId].fForget = async () => {
+          try {
+            await Promise.all(fsForgetSite.map((f) => f().catch(e => {
+              console.warn(`Error during forget function for site ${siteId}:`, e);
+            })));
+          } catch (error) {
+            console.error(`Error in forget function for site ${siteId}:`, error);
+          }
+        };
+
+        this.events.emit("syncProgress", {
+          total: allKnownSites.size,
+          loaded: Object.keys(siteInfos).filter(id => siteInfos[id].entries !== undefined).length,
+          type: "collections"
+        });
+
+        await fFinal();
+      } catch (error) {
+        console.error(`Error processing site ${siteId}:`, error);
+        siteInfos[siteId].error = error as Error;
+        this.events.emit("syncError", error as Error, "collections");
+      } finally {
+        if (siteInfos[siteId]) {
+          siteInfos[siteId].connecting = false;
+        }
+        activeConnections--;
+        
+        processNextSite();
+      }
+    };
+
     const fFinal = async () => {
-      const collections = Object.entries(siteInfos)
-        .map((s) => (s[1].entries || []).map((r) => ({ ...r, site: s[0] })))
-        .flat();
+      try {
+        const collections = Object.entries(siteInfos)
+          .filter(([_, info]) => info.entries !== undefined) // Only include sites with entries
+          .map(([site, info]) => (info.entries || []).map((r) => ({ ...r, site })))
+          .flat();
 
-      const isPartialSync = allKnownSites.size > Object.keys(siteInfos).length;
+        const isPartialSync = allKnownSites.size > Object.keys(siteInfos).filter(
+          id => siteInfos[id].entries !== undefined
+        ).length;
 
-      this.events.emit("collections", collections, isPartialSync);
+        this.events.emit("collections", collections, isPartialSync);
 
-      await f(collections, isPartialSync);
+        await f(collections, isPartialSync);
+      } catch (error) {
+        console.error("Error in fFinal:", error);
+        this.events.emit("syncError", error as Error, "collections");
+      }
     };
 
     const fFollowTrustedSites = async (
       sites?: tableaux.élémentDonnées<TrustedSite>[],
     ) => {
-      const sitesList = (sites || []).map((s) => s.données);
-      sitesList.push({
-        [TRUSTED_SITES_SITE_ID_COL]: this.siteId,
-        [TRUSTED_SITES_NAME_COL]: "Me !",
-      });
+      try {
+        const sitesList = (sites || []).map((s) => s.données);
+        sitesList.push({
+          [TRUSTED_SITES_SITE_ID_COL]: this.siteId,
+          [TRUSTED_SITES_NAME_COL]: "Me !",
+        });
 
-      sitesList.forEach((site) =>
-        allKnownSites.add(site[TRUSTED_SITES_SITE_ID_COL]),
-      );
+        sitesList.forEach((site) =>
+          allKnownSites.add(site[TRUSTED_SITES_SITE_ID_COL]),
+        );
 
-      await lock.acquire();
-      if (cancelled) return;
+        await lock.acquire();
+        if (cancelled) {
+          lock.release();
+          return;
+        }
 
-      const newSites = sitesList.filter(
-        (s) => !Object.keys(siteInfos).includes(s.siteId),
-      );
-      const obsoleteSites = Object.keys(siteInfos).filter(
-        (s) => !sitesList.some((x) => x.siteId === s),
-      );
+        const newSites = sitesList.filter(
+          (s) => !Object.keys(siteInfos).includes(s.siteId),
+        );
+        const obsoleteSites = Object.keys(siteInfos).filter(
+          (s) => !sitesList.some((x) => x.siteId === s),
+        );
 
-      await Promise.all(
-        newSites.map(async (site) => {
-          const fsForgetSite: types.schémaFonctionOublier[] = [];
+        newSites.forEach(site => {
           const { siteId } = site;
-          siteInfos[siteId] = {};
+          if (!siteInfos[siteId]) {
+            siteInfos[siteId] = {};
+          }
+          siteQueue.push(siteId);
+        });
 
-          // Listen for site collections
-          await this.listenForSiteCollections({
-            f: async (entries) => {
-              siteInfos[siteId].entries = entries;
-              await fFinal();
-            },
-            siteId: site.siteId,
-          }).then((fOublier) => {
-            fsForgetSite.push(fOublier);
-            return fOublier;
-          });
+        const processPromises = [];
+        for (let i = 0; i < Math.min(CONNECTION_POOL_LIMIT, siteQueue.length); i++) {
+          processPromises.push(processNextSite());
+        }
+        
+        await Promise.all(processPromises);
 
-          siteInfos[siteId].fForget = async () => {
-            await Promise.all(fsForgetSite.map((f) => f()));
-          };
+        for (const site of obsoleteSites) {
+          const { fForget } = siteInfos[site];
+          if (fForget) {
+            try {
+              await fForget();
+            } catch (error) {
+              console.error(`Error forgetting site ${site}:`, error);
+            }
+          }
+          delete siteInfos[site];
+        }
 
-          await fFinal();
-        }),
-      );
-      for (const site of obsoleteSites) {
-        const { fForget } = siteInfos[site];
-        if (fForget) await fForget();
-        delete siteInfos[site];
+        await fFinal();
+        lock.release();
+      } catch (error) {
+        console.error("Error in fFollowTrustedSites:", error);
+        this.events.emit("syncError", error as Error, "collections");
+        lock.release();
       }
-
-      await fFinal();
-      lock.release();
     };
 
     // Need to call once manually to get the user's own entries to show even if user is offline or
     // the site's master databases are unreachable.
-    await fFollowTrustedSites();
+    try {
+      await fFollowTrustedSites();
+    } catch (error) {
+      console.error("Error in initial fFollowTrustedSites call:", error);
+      this.events.emit("syncError", error as Error, "collections");
+    }
 
     let forgetTrustedSites: types.schémaFonctionOublier;
-    this.followTrustedSites({ f: fFollowTrustedSites }).then(
-      (fForget) => (forgetTrustedSites = fForget),
-    );
+    this.followTrustedSites({ f: fFollowTrustedSites })
+      .then((fForget) => (forgetTrustedSites = fForget))
+      .catch((error) => {
+        console.error("Error setting up trusted sites listener:", error);
+        this.events.emit("syncError", error as Error, "collections");
+      });
 
     const fForget = async () => {
-      cancelled = true;
-      if (forgetTrustedSites) await forgetTrustedSites();
-      await Promise.all(
-        Object.values(siteInfos).map((s) =>
-          s.fForget ? s.fForget() : Promise.resolve(),
-        ),
-      );
+      try {
+        cancelled = true;
+        if (forgetTrustedSites) await forgetTrustedSites();
+        
+        await Promise.all(
+          Object.values(siteInfos).map((s) =>
+            s.fForget ? s.fForget().catch(e => {
+              console.warn("Error during site forget:", e);
+            }) : Promise.resolve(),
+          ),
+        );
+      } catch (error) {
+        console.error("Error in fForget:", error);
+      }
     };
 
     return fForget;
