@@ -1,5 +1,5 @@
-import { Orbiter, createOrbiter } from "../dist/index.js";
-import { saveConfig, configIsComplete } from "../dist/config.js";
+import { Orbiter } from "../dist/index.js";
+import { saveConfig, configIsComplete, getConfig } from "../dist/config.js";
 import { créerConstellation } from "constl-ipa-fork";
 import fs from 'fs';
 import path from 'path';
@@ -72,8 +72,15 @@ async function createLens(id) {
   });
   
   try {
-    const { orbiter: lens } = await createOrbiter({
-      constellation
+    const config = await getConfig({ dir: lensDir });
+    if (!configIsComplete(config)) {
+      throw new Error(`Configuration for lens ${id} is incomplete`);
+    }
+    
+    const lens = new Orbiter({ 
+      constellation,
+      siteId: config.siteId,
+      variableIds: config.variableIds
     });
     
     lens.tempDir = lensDir; // Store temp directory for cleanup later
