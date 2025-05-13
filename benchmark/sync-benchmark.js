@@ -1,4 +1,4 @@
-import { Orbiter } from "../dist/index.js";
+import { Orbiter, createOrbiter } from "../dist/index.js";
 import { créerConstellation } from "constl-ipa-fork";
 
 const MAX_LENSES = 50;
@@ -34,7 +34,7 @@ async function createLens(id) {
     checkInit();
   });
   
-  const lens = await Orbiter.createOrbiter({
+  const { orbiter: lens } = await createOrbiter({
     constellation
   });
   
