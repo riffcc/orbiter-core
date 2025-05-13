@@ -1460,7 +1460,7 @@ export class Orbiter {
     accountId?: string;
   }): Promise<types.schémaFonctionOublier> {
     return await this.constellation.profil.suivreImage({
-      f,
+      f: f as any, // Type assertion to bypass the type check
       idCompte: accountId,
     });
   }
