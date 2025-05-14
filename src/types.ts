@@ -97,10 +97,10 @@ export const possiblyIncompleteOrbiterConfigSchema: JSONSchemaType<PossiblyIncom
         type: "object",
         nullable: true,
         properties: {
-          type: { 
-            type: "string", 
+          type: {
+            type: "string",
             enum: ["many-level", "rocksdb"],
-            nullable: true 
+            nullable: true,
           },
           multiProcess: { type: "boolean", nullable: true },
         },
@@ -124,9 +124,9 @@ export const orbiterConfigSchema: JSONSchemaType<OrbiterConfig> = {
       type: "object",
       nullable: true,
       properties: {
-        type: { 
-          type: "string", 
-          enum: ["many-level", "rocksdb"] 
+        type: {
+          type: "string",
+          enum: ["many-level", "rocksdb"],
         },
         multiProcess: { type: "boolean", nullable: true },
       },
@@ -183,7 +183,9 @@ export type TrustedSite = {
   [TRUSTED_SITES_NAME_COL]: string;
 };
 
-export const releasesFileSchema: JSONSchemaType<Release<Record<string, unknown>>[]> = {
+export const releasesFileSchema: JSONSchemaType<
+  Release<Record<string, unknown>>[]
+> = {
   type: "array",
   items: {
     type: "object",
@@ -191,8 +193,7 @@ export const releasesFileSchema: JSONSchemaType<Release<Record<string, unknown>>
       [RELEASES_NAME_COLUMN]: { type: "string" },
       [RELEASES_FILE_COLUMN]: { type: "string" },
       [RELEASES_AUTHOR_COLUMN]: { type: "string" },
-      [RELEASES_CATEGORY_COLUMN]: { type: "string",
-      },
+      [RELEASES_CATEGORY_COLUMN]: { type: "string" },
       [RELEASES_THUMBNAIL_COLUMN]: { type: "string", nullable: true },
       [RELEASES_COVER_COLUMN]: { type: "string", nullable: true },
       [RELEASES_METADATA_COLUMN]: {
@@ -217,18 +218,23 @@ export type ContentCategory<T = string> = {
   [CONTENT_CATEGORIES_METADATA_SCHEMA]: T;
 };
 
-export type ContentCategoryMetadataField = Record<string, {
-  type: "string" | "number" | "array";
-  description: string;
-  options?: string[];
-}>;
+export type ContentCategoryMetadataField = Record<
+  string,
+  {
+    type: "string" | "number" | "array";
+    description: string;
+    options?: string[];
+  }
+>;
 
 export type ContentCategoryWithId<T = string> = {
   id: string;
   contentCategory: ContentCategory<T>;
 };
 
-export const categoriesFileSchema: JSONSchemaType<ContentCategory<ContentCategoryMetadataField>[]> = {
+export const categoriesFileSchema: JSONSchemaType<
+  ContentCategory<ContentCategoryMetadataField>[]
+> = {
   type: "array",
   items: {
     type: "object",
@@ -246,7 +252,7 @@ export const categoriesFileSchema: JSONSchemaType<ContentCategory<ContentCategor
               enum: ["string", "number", "array"],
             },
             description: { type: "string" },
-            options: { 
+            options: {
               type: "array",
               items: { type: "string" },
               nullable: true,
@@ -255,8 +261,12 @@ export const categoriesFileSchema: JSONSchemaType<ContentCategory<ContentCategor
           required: ["type", "description"],
         },
         required: [],
-      }
+      },
     },
-    required: [CONTENT_CATEGORIES_CATEGORY_ID, CONTENT_CATEGORIES_DISPLAY_NAME,CONTENT_CATEGORIES_METADATA_SCHEMA],
+    required: [
+      CONTENT_CATEGORIES_CATEGORY_ID,
+      CONTENT_CATEGORIES_DISPLAY_NAME,
+      CONTENT_CATEGORIES_METADATA_SCHEMA,
+    ],
   },
 };

@@ -69,7 +69,16 @@
       "mediaFormat": {
         "type": "string",
         "description": "Physical media format if applicable",
-        "options": ["CD", "DVD", "Vinyl", "Soundboard", "SACD", "DAT", "WEB", "Blu-Ray"]
+        "options": [
+          "CD",
+          "DVD",
+          "Vinyl",
+          "Soundboard",
+          "SACD",
+          "DAT",
+          "WEB",
+          "Blu-Ray"
+        ]
       }
     }
   },
@@ -198,7 +207,14 @@
       "status": {
         "type": "string",
         "description": "Current status of the TV show",
-        "options": ["Returning Series", "Ended", "Canceled", "In Production", "Pilot", "Unknown"]
+        "options": [
+          "Returning Series",
+          "Ended",
+          "Canceled",
+          "In Production",
+          "Pilot",
+          "Unknown"
+        ]
       },
       "TMDBID": {
         "type": "string",
