@@ -25,7 +25,7 @@ export function patchConstellationConfig(dbConfig: DatabaseConfig): void {
     ? "true"
     : "false";
   process.env.ORBITDB_STORAGE_ADAPTER =
-    dbConfig.type === "rocksdb" ? "rocksdb" : "level";
+    dbConfig.type === "rocksdb" ? "leveldb" : "level";
 }
 
 /**

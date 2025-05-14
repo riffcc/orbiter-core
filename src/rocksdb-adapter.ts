@@ -1,7 +1,5 @@
 import { Level } from "level";
 import { AbstractLevel } from "abstract-level";
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const rocksdb = require("rocksdb");
 
 interface RocksDBOptions {
   valueEncoding?: string;
@@ -11,6 +9,7 @@ interface RocksDBOptions {
 
 /**
  * Creates a RocksDB adapter with multi-process support
+ * Uses the native RocksDB backend through abstract-level
  */
 export function createRocksDBAdapter(
   location: string,
@@ -20,6 +19,5 @@ export function createRocksDBAdapter(
     ...options,
     keyEncoding: options.keyEncoding || "utf8",
     valueEncoding: options.valueEncoding || "json",
-    db: rocksdb,
   }) as unknown as AbstractLevel<string, unknown>;
 }

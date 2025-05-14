@@ -20,7 +20,7 @@ export function configureOrbitDBStore(): void {
         process.env.ORBITDB_ROCKSDB_MULTIPROCESS = config.multiProcess
           ? "true"
           : "false";
-        process.env.ORBITDB_STORAGE_ADAPTER = "rocksdb";
+        process.env.ORBITDB_STORAGE_ADAPTER = "leveldb";
       }
     }
   } catch (err) {
