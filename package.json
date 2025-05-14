@@ -1,6 +1,6 @@
 {
   "name": "@riffcc/orbiter",
-  "version": "0.2.34-dev6",
+  "version": "0.2.34-dev7",
   "description": "",
   "main": "dist/index.js",
   "type": "module",
