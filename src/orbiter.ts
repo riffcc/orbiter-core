@@ -76,13 +76,8 @@ interface OrbiterEvents {
     userId: string;
     role: "ADMIN" | "MODERATOR" | undefined;
   }) => void;
-  "release added": (args: {
-    releaseId: string;
-    release: Release;
-  }) => void;
-  "release removed": (args: {
-    releaseId: string;
-  }) => void;
+  "release added": (args: { releaseId: string; release: Release }) => void;
+  "release removed": (args: { releaseId: string }) => void;
   "collection added": (args: {
     collectionId: string;
     collection: Collection;
@@ -221,12 +216,12 @@ const getSwarmDbSchema = ({
   };
 };
 
-export const validateCategories = async ({ dir } : { dir: string }) => {
+export const validateCategories = async ({ dir }: { dir: string }) => {
   let categoriesData = DEFAULT_CONTENT_CATEGORIES;
   const { readFileSync, existsSync } = await import("fs");
   const { join } = await import("path");
   const categoriesPath = join(dir, "contentCategories.json");
-  
+
   if (existsSync(categoriesPath)) {
     categoriesData = JSON.parse(readFileSync(categoriesPath, "utf8"));
     console.log(JSON.stringify(categoriesData, null, 2));
@@ -250,7 +245,7 @@ export const setUpSite = async ({
   constellation: Constellation;
   categoriesData: ContentCategory<ContentCategoryMetadataField>[];
   siteId?: string;
-  variableIds?: PossiblyIncompleteVariableIds
+  variableIds?: PossiblyIncompleteVariableIds;
 }) => {
   // Variables for moderation database
   const trustedSitesSiteIdVar =
@@ -278,7 +273,7 @@ export const setUpSite = async ({
     (await constellation.variables.créerVariable({
       catégorie: "horoDatage",
     }));
-    const featuredReleasesPromotedVar =
+  const featuredReleasesPromotedVar =
     variableIds.featuredReleasesPromotedVar ||
     (await constellation.variables.créerVariable({
       catégorie: "booléen",
@@ -288,22 +283,22 @@ export const setUpSite = async ({
     (await constellation.variables.créerVariable({
       catégorie: "chaîneNonTraductible",
     }));
-    const contentCategoriesCategoryIdVar =
+  const contentCategoriesCategoryIdVar =
     variableIds.contentCategoriesCategoryIdVar ||
     (await constellation.variables.créerVariable({
       catégorie: "chaîneNonTraductible",
     }));
-    const contentCategoriesDisplayNameVar =
+  const contentCategoriesDisplayNameVar =
     variableIds.contentCategoriesDisplayNameVar ||
     (await constellation.variables.créerVariable({
       catégorie: "chaîneNonTraductible",
     }));
-    const contentCategoriesFeaturedVar =
+  const contentCategoriesFeaturedVar =
     variableIds.contentCategoriesFeaturedVar ||
     (await constellation.variables.créerVariable({
       catégorie: "booléen",
     }));
-    const contentCategoriesMetadataSchemaVar =
+  const contentCategoriesMetadataSchemaVar =
     variableIds.contentCategoriesMetadataSchemaVar ||
     (await constellation.variables.créerVariable({
       catégorie: "chaîneNonTraductible",
@@ -341,10 +336,10 @@ export const setUpSite = async ({
       catégorie: "chaîneNonTraductible",
     }));
   const releasesCategoryVar =
-  variableIds.releasesCategoryVar ||
-  (await constellation.variables.créerVariable({
-    catégorie: "chaîneNonTraductible",
-  }));
+    variableIds.releasesCategoryVar ||
+    (await constellation.variables.créerVariable({
+      catégorie: "chaîneNonTraductible",
+    }));
 
   // Variables for collections table
   const collectionsNameVar =
@@ -379,11 +374,13 @@ export const setUpSite = async ({
     }));
 
   // Swarm ID for site
-  let swarmId = siteId ? await constellation.orbite.appliquerFonctionBdOrbite({
-    idBd: siteId,
-    fonction: "get",
-    args: ["swarmId"],
-  }) : undefined;
+  let swarmId = siteId
+    ? await constellation.orbite.appliquerFonctionBdOrbite({
+        idBd: siteId,
+        fonction: "get",
+        args: ["swarmId"],
+      })
+    : undefined;
   if (!swarmId) {
     swarmId = await constellation.nuées.créerNuée({});
 
@@ -420,11 +417,13 @@ export const setUpSite = async ({
     }
   }
 
-  let modDbId = siteId ? await constellation.orbite.appliquerFonctionBdOrbite({
-    idBd: siteId,
-    fonction: "get",
-    args: ["modDb"],
-  }) : undefined;
+  let modDbId = siteId
+    ? await constellation.orbite.appliquerFonctionBdOrbite({
+        idBd: siteId,
+        fonction: "get",
+        args: ["modDb"],
+      })
+    : undefined;
   if (!modDbId) {
     modDbId = await constellation.bds.créerBdDeSchéma({
       schéma: {
@@ -492,8 +491,8 @@ export const setUpSite = async ({
                 idColonne: CONTENT_CATEGORIES_METADATA_SCHEMA,
               },
             ],
-            clef: CONTENT_CATEGORIES_TABLE_KEY
-          }
+            clef: CONTENT_CATEGORIES_TABLE_KEY,
+          },
         ],
       },
     });
@@ -501,10 +500,12 @@ export const setUpSite = async ({
       const vals: types.élémentsBd = {
         [CONTENT_CATEGORIES_CATEGORY_ID]: category.categoryId,
         [CONTENT_CATEGORIES_DISPLAY_NAME]: category.displayName,
-        [CONTENT_CATEGORIES_METADATA_SCHEMA]: JSON.stringify(category.metadataSchema),
-      }
+        [CONTENT_CATEGORIES_METADATA_SCHEMA]: JSON.stringify(
+          category.metadataSchema,
+        ),
+      };
       if (category.featured) {
-        vals[CONTENT_CATEGORIES_FEATURED] = category.featured
+        vals[CONTENT_CATEGORIES_FEATURED] = category.featured;
       }
       await constellation.bds.ajouterÉlémentÀTableauParClef({
         idBd: modDbId,
@@ -524,7 +525,7 @@ export const setUpSite = async ({
     featuredReleasesStartTimeVar,
     featuredReleasesEndTimeVar,
     featuredReleasesPromotedVar,
-    
+
     // blocked releases
     blockedReleasesReleaseIdVar,
 
@@ -618,9 +619,9 @@ export class Orbiter {
 
   async _init() {
     const { swarmId, modDbId } = await this.orbiterConfig();
-    
+
     await this.constellation.attendreInitialisée();
-    
+
     this.forgetFns.push(
       await this.constellation.suivreBd({
         id: this.siteId,
@@ -645,15 +646,16 @@ export class Orbiter {
         schéma: OrbiterSiteDbSchema,
       }),
     );
-    
+
     const userId = await this.constellation.obtIdCompte();
     if (userId) {
-      const isModerator = await this.constellation.orbite.appliquerFonctionBdOrbite({
-        idBd: modDbId,
-        fonction: "get",
-        args: ["moderators", userId],
-      });
-      
+      const isModerator =
+        await this.constellation.orbite.appliquerFonctionBdOrbite({
+          idBd: modDbId,
+          fonction: "get",
+          args: ["moderators", userId],
+        });
+
       if (isModerator) {
         this.events.emit("user role changed", {
           userId,
@@ -665,7 +667,7 @@ export class Orbiter {
           fonction: "set",
           args: ["moderators", userId, "MEMBRE"],
         });
-        
+
         this.events.emit("user role changed", {
           userId,
           role: "MODERATOR",
@@ -984,10 +986,12 @@ export class Orbiter {
             idBd: id,
             clefTableau: FEATURED_RELEASES_TABLE_KEY,
             f: async (featured) => {
-              await fSuivreBd(featured.map((x) => ({
-                id: x.id,
-                featured: x.données,
-              })))
+              await fSuivreBd(
+                featured.map((x) => ({
+                  id: x.id,
+                  featured: x.données,
+                })),
+              );
             },
           },
         );
@@ -1199,13 +1203,15 @@ export class Orbiter {
   async addRelease(release: Release): Promise<void> {
     const { swarmId, swarmSchema } = await this.orbiterConfig();
 
-    const resultIds = await this.constellation.bds.ajouterÉlémentÀTableauUnique({
-      schémaBd: swarmSchema,
-      idNuéeUnique: swarmId,
-      clefTableau: RELEASES_DB_TABLE_KEY,
-      vals: removeUndefined(release),
-    });
-    
+    const resultIds = await this.constellation.bds.ajouterÉlémentÀTableauUnique(
+      {
+        schémaBd: swarmSchema,
+        idNuéeUnique: swarmId,
+        clefTableau: RELEASES_DB_TABLE_KEY,
+        vals: removeUndefined(release),
+      },
+    );
+
     if (resultIds && resultIds.length > 0) {
       this.events.emit("release added", {
         releaseId: resultIds[0],
@@ -1223,7 +1229,7 @@ export class Orbiter {
       clefTableau: RELEASES_DB_TABLE_KEY,
       idÉlément: releaseId,
     });
-    
+
     this.events.emit("release removed", { releaseId });
   }
 
@@ -1248,13 +1254,15 @@ export class Orbiter {
   async addCollection(collection: Collection): Promise<void> {
     const { swarmId, swarmSchema } = await this.orbiterConfig();
 
-    const resultIds = await this.constellation.bds.ajouterÉlémentÀTableauUnique({
-      schémaBd: swarmSchema,
-      idNuéeUnique: swarmId,
-      clefTableau: COLLECTIONS_DB_TABLE_KEY,
-      vals: removeUndefined(collection),
-    });
-    
+    const resultIds = await this.constellation.bds.ajouterÉlémentÀTableauUnique(
+      {
+        schémaBd: swarmSchema,
+        idNuéeUnique: swarmId,
+        clefTableau: COLLECTIONS_DB_TABLE_KEY,
+        vals: removeUndefined(collection),
+      },
+    );
+
     if (resultIds && resultIds.length > 0) {
       this.events.emit("collection added", {
         collectionId: resultIds[0],
@@ -1407,13 +1415,11 @@ export class Orbiter {
     event: E;
     listener: OrbiterEvents[E];
   }): () => void {
-    this.events.on(event, listener as any);
+    this.events.on(event, listener);
     return () => {
-      this.events.off(event, listener as any);
+      this.events.off(event, listener);
     };
   }
-
-
 
   // async deleteAccount(): Promise<void> {
   //   return await this.constellation.fermerCompte();
@@ -1465,7 +1471,7 @@ export class Orbiter {
     f,
     accountId,
   }: {
-    f: types.schémaFonctionSuivi<{ image: Uint8Array; idImage: string; } | null>;
+    f: types.schémaFonctionSuivi<{ image: Uint8Array; idImage: string } | null>;
     accountId?: string;
   }): Promise<types.schémaFonctionOublier> {
     return await this.constellation.profil.suivreImage({
@@ -1525,7 +1531,7 @@ export class Orbiter {
     cid,
     startTime,
     endTime,
-    promoted
+    promoted,
   }: {
     cid: string;
     startTime: string;
@@ -1564,7 +1570,6 @@ export class Orbiter {
       vals: removeUndefined(featuredRelease),
     });
   }
-
 
   async followIsModerator({
     f,
@@ -1620,7 +1625,7 @@ export class Orbiter {
         rôle: "MODÉRATEUR",
       });
     }
-    
+
     this.events.emit("user role changed", {
       userId,
       role: admin ? "ADMIN" : "MODERATOR",
@@ -1754,20 +1759,29 @@ export class Orbiter {
     const vals: types.élémentsBd = {
       [CONTENT_CATEGORIES_CATEGORY_ID]: category.categoryId,
       [CONTENT_CATEGORIES_DISPLAY_NAME]: category.displayName,
-      [CONTENT_CATEGORIES_METADATA_SCHEMA]: JSON.stringify(category.metadataSchema),
-    }
+      [CONTENT_CATEGORIES_METADATA_SCHEMA]: JSON.stringify(
+        category.metadataSchema,
+      ),
+    };
     if (category.featured) {
-      vals[CONTENT_CATEGORIES_FEATURED] = category.featured
+      vals[CONTENT_CATEGORIES_FEATURED] = category.featured;
     }
-    const elementIds = await this.constellation.bds.ajouterÉlémentÀTableauParClef({
-      idBd: modDbId,
-      clefTableau: CONTENT_CATEGORIES_TABLE_KEY,
-      vals,
-    });
+    const elementIds =
+      await this.constellation.bds.ajouterÉlémentÀTableauParClef({
+        idBd: modDbId,
+        clefTableau: CONTENT_CATEGORIES_TABLE_KEY,
+        vals,
+      });
     return elementIds[0];
   }
 
-  async editCategory({ elementId, category }: { elementId: string; category: Partial<ContentCategory> }): Promise<void> {
+  async editCategory({
+    elementId,
+    category,
+  }: {
+    elementId: string;
+    category: Partial<ContentCategory>;
+  }): Promise<void> {
     const { modDbId } = await this.orbiterConfig();
 
     await this.constellation.bds.modifierÉlémentDeTableauParClef({
@@ -1794,18 +1808,20 @@ export class Orbiter {
     f: types.schémaFonctionSuivi<ContentCategoryWithId[]>;
   }): Promise<types.schémaFonctionOublier> {
     const { modDbId } = await this.orbiterConfig();
-    
-    return await this.constellation.bds.suivreDonnéesDeTableauParClef<ContentCategory>({
-      idBd: modDbId,
-      clefTableau: CONTENT_CATEGORIES_TABLE_KEY,
-      f: async (categories) => {
-        const mappedCategories = categories.map((c) => ({
-          id: c.id,
-          contentCategory: c.données,
-        }));
-        await f(mappedCategories);
+
+    return await this.constellation.bds.suivreDonnéesDeTableauParClef<ContentCategory>(
+      {
+        idBd: modDbId,
+        clefTableau: CONTENT_CATEGORIES_TABLE_KEY,
+        f: async (categories) => {
+          const mappedCategories = categories.map((c) => ({
+            id: c.id,
+            contentCategory: c.données,
+          }));
+          await f(mappedCategories);
+        },
       },
-    });
+    );
   }
 }
 
@@ -1824,12 +1840,11 @@ export const createOrbiter = async ({
   if (!configIsComplete(existingConfig)) {
     throw new Error("Configure Orbiter with `orb config` first.");
   }
-  
-  
-  const orbiter = new Orbiter({ 
-    constellation, 
+
+  const orbiter = new Orbiter({
+    constellation,
     ...existingConfig,
-    ...(databaseConfig ? { database: databaseConfig } : {})
+    ...(databaseConfig ? { database: databaseConfig } : {}),
   });
 
   return { orbiter };
