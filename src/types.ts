@@ -58,9 +58,23 @@ export type VariableIds = Record<(typeof variableIdKeys)[number], string>;
 
 export type PossiblyIncompleteVariableIds = Partial<VariableIds>;
 
+export type DatabaseConfig = {
+  backend: "many-level" | "rocksdb";
+  multiProcess?: boolean;
+};
+
+export type SiteDbStructure = {
+  swarmId: string;
+  trustedSitesDbId: string;
+  blockedReleasesDbId: string;
+  featuredReleasesDbId: string;
+  contentCategoriesDbId: string;
+};
+
 export type OrbiterConfig = {
   siteId: string;
   variableIds: VariableIds;
+  database?: DatabaseConfig;
 };
 
 export type RecursivePartial<T> = {
@@ -87,6 +101,19 @@ export const possiblyIncompleteOrbiterConfigSchema: JSONSchemaType<PossiblyIncom
         ) as { [P in keyof VariableIds]: { type: "string"; nullable: true } },
         required: [],
       },
+      database: {
+        type: "object",
+        nullable: true,
+        properties: {
+          backend: {
+            type: "string",
+            enum: ["many-level", "rocksdb"],
+            nullable: true,
+          },
+          multiProcess: { type: "boolean", nullable: true },
+        },
+        required: [],
+      },
     },
     required: [],
   };
@@ -100,6 +127,18 @@ export const orbiterConfigSchema: JSONSchemaType<OrbiterConfig> = {
         variableIdKeys.map((v) => [v, { type: "string" }]),
       ) as { [P in keyof VariableIds]: { type: "string" } },
       required: variableIdKeys,
+    },
+    database: {
+      type: "object",
+      nullable: true,
+      properties: {
+        backend: {
+          type: "string",
+          enum: ["many-level", "rocksdb"],
+        },
+        multiProcess: { type: "boolean", nullable: true },
+      },
+      required: ["backend"],
     },
   },
   required: ["siteId", "variableIds"],
@@ -152,7 +191,9 @@ export type TrustedSite = {
   [TRUSTED_SITES_NAME_COL]: string;
 };
 
-export const releasesFileSchema: JSONSchemaType<Release<Record<string, unknown>>[]> = {
+export const releasesFileSchema: JSONSchemaType<
+  Release<Record<string, unknown>>[]
+> = {
   type: "array",
   items: {
     type: "object",
@@ -160,8 +201,7 @@ export const releasesFileSchema: JSONSchemaType<Release<Record<string, unknown>>
       [RELEASES_NAME_COLUMN]: { type: "string" },
       [RELEASES_FILE_COLUMN]: { type: "string" },
       [RELEASES_AUTHOR_COLUMN]: { type: "string" },
-      [RELEASES_CATEGORY_COLUMN]: { type: "string",
-      },
+      [RELEASES_CATEGORY_COLUMN]: { type: "string" },
       [RELEASES_THUMBNAIL_COLUMN]: { type: "string", nullable: true },
       [RELEASES_COVER_COLUMN]: { type: "string", nullable: true },
       [RELEASES_METADATA_COLUMN]: {
@@ -186,18 +226,23 @@ export type ContentCategory<T = string> = {
   [CONTENT_CATEGORIES_METADATA_SCHEMA]: T;
 };
 
-export type ContentCategoryMetadataField = Record<string, {
-  type: "string" | "number" | "array";
-  description: string;
-  options?: string[];
-}>;
+export type ContentCategoryMetadataField = Record<
+  string,
+  {
+    type: "string" | "number" | "array";
+    description: string;
+    options?: string[];
+  }
+>;
 
 export type ContentCategoryWithId<T = string> = {
   id: string;
   contentCategory: ContentCategory<T>;
 };
 
-export const categoriesFileSchema: JSONSchemaType<ContentCategory<ContentCategoryMetadataField>[]> = {
+export const categoriesFileSchema: JSONSchemaType<
+  ContentCategory<ContentCategoryMetadataField>[]
+> = {
   type: "array",
   items: {
     type: "object",
@@ -215,7 +260,7 @@ export const categoriesFileSchema: JSONSchemaType<ContentCategory<ContentCategor
               enum: ["string", "number", "array"],
             },
             description: { type: "string" },
-            options: { 
+            options: {
               type: "array",
               items: { type: "string" },
               nullable: true,
@@ -224,8 +269,12 @@ export const categoriesFileSchema: JSONSchemaType<ContentCategory<ContentCategor
           required: ["type", "description"],
         },
         required: [],
-      }
+      },
     },
-    required: [CONTENT_CATEGORIES_CATEGORY_ID, CONTENT_CATEGORIES_DISPLAY_NAME,CONTENT_CATEGORIES_METADATA_SCHEMA],
+    required: [
+      CONTENT_CATEGORIES_CATEGORY_ID,
+      CONTENT_CATEGORIES_DISPLAY_NAME,
+      CONTENT_CATEGORIES_METADATA_SCHEMA,
+    ],
   },
 };
