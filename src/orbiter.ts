@@ -1154,30 +1154,59 @@ export class Orbiter {
 
   async listenForReleases({
     f,
+    initialBatchSize = 50,
   }: {
     f: types.schémaFonctionSuivi<
       { release: ReleaseWithId; contributor: string; site: string }[]
     >;
+    initialBatchSize?: number;
   }): Promise<types.schémaFonctionOublier> {
     type SiteInfo = {
       blockedCids?: string[];
       entries?: { release: ReleaseWithId; contributor: string }[];
       fForget?: forgetFunction;
+      isLoaded?: boolean;
     };
     const siteInfos: { [site: string]: SiteInfo } = {};
+    
+    const siteConfigCache: { [siteId: string]: SiteDbStructure } = {};
 
     let cancelled = false;
     const lock = new Lock();
+    let initialLoadComplete = false;
 
     const fFinal = async () => {
-      const blockedCids = Object.values(siteInfos)
-        .map((s) => s.blockedCids || [])
-        .flat();
-      const releases = Object.entries(siteInfos)
-        .map((s) => (s[1].entries || []).map((r) => ({ ...r, site: s[0] })))
-        .flat()
-        .filter((r) => !blockedCids.includes(r.release.release.file));
-      await f(releases);
+      const blockedCidsSet = new Set<string>();
+      Object.values(siteInfos).forEach(s => {
+        if (s.blockedCids) {
+          s.blockedCids.forEach(cid => blockedCidsSet.add(cid));
+        }
+      });
+
+      const loadedSites = Object.entries(siteInfos)
+        .filter(([_, info]) => info.isLoaded && info.entries && info.entries.length > 0);
+      
+      const sitesToUse = loadedSites.length > 0 || initialLoadComplete 
+        ? loadedSites 
+        : Object.entries(siteInfos).filter(([_, info]) => info.entries && info.entries.length > 0);
+      
+      const releases = sitesToUse
+        .flatMap(([site, info]) => 
+          (info.entries || [])
+            .map(r => ({ ...r, site }))
+            .filter(r => !blockedCidsSet.has(r.release.release.file))
+        );
+      
+      const releasesToSend = initialLoadComplete ? releases : releases.slice(0, initialBatchSize);
+      
+      await f(releasesToSend);
+      
+      if (!initialLoadComplete && sitesToUse.length > 0) {
+        initialLoadComplete = true;
+        if (releases.length > initialBatchSize) {
+          setTimeout(() => f(releases), 0);
+        }
+      }
     };
 
     const fFollowTrustedSites = async (
@@ -1192,44 +1221,91 @@ export class Orbiter {
       await lock.acquire();
       if (cancelled) return;
 
-      const newSites = sitesList.filter(
-        (s) => !Object.keys(siteInfos).includes(s.siteId),
-      );
-      const obsoleteSites = Object.keys(siteInfos).filter(
-        (s) => !sitesList.some((x) => x.siteId === s),
-      );
+      const existingSiteIds = new Set(Object.keys(siteInfos));
+      const newSites = sitesList.filter(s => !existingSiteIds.has(s.siteId));
+      
+      const obsoleteSites = Array.from(existingSiteIds)
+        .filter(id => !sitesList.some(s => s.siteId === id));
 
-      for (const site of newSites) {
+      await Promise.all(newSites.map(async (site) => {
+        const { siteId } = site;
+        siteInfos[siteId] = { isLoaded: false };
         const fsForgetSite: types.schémaFonctionOublier[] = [];
 
-        const { siteId } = site;
-        siteInfos[siteId] = {};
-        this.listenForSiteBlockedReleases({
-          f: async (cids) => {
-            siteInfos[siteId].blockedCids = cids?.map((c) => c.cid);
-            await fFinal();
-          },
-          siteId: site.siteId,
-        }).then((fForget) => fsForgetSite.push(fForget));
+        let siteConfig = siteConfigCache[siteId];
+        if (!siteConfig) {
+          try {
+            await new Promise<void>((resolve) => {
+              let configLoaded = false;
+              
+              this.constellation.suivreBdDic({
+                id: siteId,
+                schéma: ROOT_DB_JSON_SCHEMA,
+                f: (x) => {
+                  if (!configLoaded) {
+                    siteConfig = {
+                      swarmId: x["swarmId"] as string,
+                      trustedSitesDbId: x["trustedSitesDbId"] as string,
+                      blockedReleasesDbId: x["blockedReleasesDbId"] as string,
+                      featuredReleasesDbId: x["featuredReleasesDbId"] as string,
+                      contentCategoriesDbId: x["contentCategoriesDbId"] as string,
+                    };
+                    siteConfigCache[siteId] = siteConfig;
+                    configLoaded = true;
+                    resolve();
+                  }
+                },
+              });
+              
+              setTimeout(() => {
+                if (!configLoaded) {
+                  console.warn(`Timeout loading site configuration for ${siteId}`);
+                  resolve();
+                }
+              }, 5000);
+            });
+            
+            if (!siteConfig) {
+              throw new Error(`Failed to load site configuration for ${siteId}`);
+            }
+          } catch (e) {
+            console.error(`Failed to load site configuration for ${siteId}:`, e);
+            return;
+          }
+        }
 
-        this.listenForSiteReleases({
-          f: async (entries) => {
-            siteInfos[siteId].entries = entries;
-            await fFinal();
-          },
-          siteId: site.siteId,
-        }).then((fOublier) => fsForgetSite.push(fOublier));
+        const [blockedReleasesPromise, siteReleasesPromise] = await Promise.all([
+          this.listenForSiteBlockedReleases({
+            f: async (cids) => {
+              siteInfos[siteId].blockedCids = cids?.map((c) => c.cid);
+              await fFinal();
+            },
+            siteId: site.siteId,
+          }),
+          this.listenForSiteReleases({
+            f: async (entries) => {
+              siteInfos[siteId].entries = entries;
+              siteInfos[siteId].isLoaded = true;
+              await fFinal();
+            },
+            siteId: site.siteId,
+          })
+        ]);
+        
+        fsForgetSite.push(blockedReleasesPromise, siteReleasesPromise);
 
         siteInfos[siteId].fForget = async () => {
           await Promise.all(fsForgetSite.map((f) => f()));
+          delete siteConfigCache[siteId];
         };
-        await fFinal();
-      }
-      for (const site of obsoleteSites) {
+      }));
+
+      await Promise.all(obsoleteSites.map(async (site) => {
         const { fForget } = siteInfos[site];
         if (fForget) await fForget();
         delete siteInfos[site];
-      }
+        delete siteConfigCache[site];
+      }));
 
       await fFinal();
       lock.release();
@@ -1260,25 +1336,49 @@ export class Orbiter {
   // Todo: refactor listenForReleases, listenForCollections, and listenForFeaturedReleases to remove duplicated code
   async listenForCollections({
     f,
+    initialBatchSize = 50,
   }: {
     f: types.schémaFonctionSuivi<
       { collection: CollectionWithId; contributor: string; site: string }[]
     >;
+    initialBatchSize?: number;
   }): Promise<types.schémaFonctionOublier> {
     type SiteInfo = {
       entries?: { collection: CollectionWithId; contributor: string }[];
       fForget?: forgetFunction;
+      isLoaded?: boolean;
     };
     const siteInfos: { [site: string]: SiteInfo } = {};
+    
+    const siteConfigCache: { [siteId: string]: SiteDbStructure } = {};
 
     let cancelled = false;
     const lock = new Lock();
+    let initialLoadComplete = false;
 
     const fFinal = async () => {
-      const collections = Object.entries(siteInfos)
-        .map((s) => (s[1].entries || []).map((r) => ({ ...r, site: s[0] })))
-        .flat();
-      await f(collections);
+      const loadedSites = Object.entries(siteInfos)
+        .filter(([_, info]) => info.isLoaded && info.entries && info.entries.length > 0);
+      
+      const sitesToUse = loadedSites.length > 0 || initialLoadComplete 
+        ? loadedSites 
+        : Object.entries(siteInfos).filter(([_, info]) => info.entries && info.entries.length > 0);
+      
+      const collections = sitesToUse
+        .flatMap(([site, info]) => 
+          (info.entries || []).map(r => ({ ...r, site }))
+        );
+      
+      const collectionsToSend = initialLoadComplete ? collections : collections.slice(0, initialBatchSize);
+      
+      await f(collectionsToSend);
+      
+      if (!initialLoadComplete && sitesToUse.length > 0) {
+        initialLoadComplete = true;
+        if (collections.length > initialBatchSize) {
+          setTimeout(() => f(collections), 0);
+        }
+      }
     };
 
     const fFollowTrustedSites = async (
@@ -1293,22 +1393,64 @@ export class Orbiter {
       await lock.acquire();
       if (cancelled) return;
 
-      const newSites = sitesList.filter(
-        (s) => !Object.keys(siteInfos).includes(s.siteId),
-      );
-      const obsoleteSites = Object.keys(siteInfos).filter(
-        (s) => !sitesList.some((x) => x.siteId === s),
-      );
+      const existingSiteIds = new Set(Object.keys(siteInfos));
+      const newSites = sitesList.filter(s => !existingSiteIds.has(s.siteId));
+      
+      const obsoleteSites = Array.from(existingSiteIds)
+        .filter(id => !sitesList.some(s => s.siteId === id));
 
-      for (const site of newSites) {
+      await Promise.all(newSites.map(async (site) => {
+        const { siteId } = site;
+        siteInfos[siteId] = { isLoaded: false };
         const fsForgetSite: types.schémaFonctionOublier[] = [];
 
-        const { siteId } = site;
-        siteInfos[siteId] = {};
+        let siteConfig = siteConfigCache[siteId];
+        if (!siteConfig) {
+          try {
+            await new Promise<void>((resolve) => {
+              let configLoaded = false;
+              
+              this.constellation.suivreBdDic({
+                id: siteId,
+                schéma: ROOT_DB_JSON_SCHEMA,
+                f: (x) => {
+                  if (!configLoaded) {
+                    siteConfig = {
+                      swarmId: x["swarmId"] as string,
+                      trustedSitesDbId: x["trustedSitesDbId"] as string,
+                      blockedReleasesDbId: x["blockedReleasesDbId"] as string,
+                      featuredReleasesDbId: x["featuredReleasesDbId"] as string,
+                      contentCategoriesDbId: x["contentCategoriesDbId"] as string,
+                    };
+                    siteConfigCache[siteId] = siteConfig;
+                    configLoaded = true;
+                    resolve();
+                  }
+                },
+              });
+              
+              setTimeout(() => {
+                if (!configLoaded) {
+                  console.warn(`Timeout loading site configuration for ${siteId}`);
+                  resolve();
+                }
+              }, 5000);
+            });
+            
+            if (!siteConfig) {
+              throw new Error(`Failed to load site configuration for ${siteId}`);
+            }
+          } catch (e) {
+            console.error(`Failed to load site configuration for ${siteId}:`, e);
+            return;
+          }
+        }
 
+        // Load site collections
         this.listenForSiteCollections({
           f: async (entries) => {
             siteInfos[siteId].entries = entries;
+            siteInfos[siteId].isLoaded = true;
             await fFinal();
           },
           siteId: site.siteId,
@@ -1316,14 +1458,16 @@ export class Orbiter {
 
         siteInfos[siteId].fForget = async () => {
           await Promise.all(fsForgetSite.map((f) => f()));
+          delete siteConfigCache[siteId];
         };
-        await fFinal();
-      }
-      for (const site of obsoleteSites) {
+      }));
+
+      await Promise.all(obsoleteSites.map(async (site) => {
         const { fForget } = siteInfos[site];
         if (fForget) await fForget();
         delete siteInfos[site];
-      }
+        delete siteConfigCache[site];
+      }));
 
       await fFinal();
       lock.release();
