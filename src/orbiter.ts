@@ -1483,8 +1483,19 @@ export class Orbiter {
     f: types.schémaFonctionSuivi<{ image: Uint8Array; idImage: string } | null>;
     accountId?: string;
   }): Promise<types.schémaFonctionOublier> {
+    const fWrapper: types.schémaFonctionSuivi<Uint8Array | null> = (imageData) => {
+      if (imageData === null) {
+        f(null);
+      } else {
+        f({
+          image: imageData,
+          idImage: "profile-image", // Use a default ID since we don't have one
+        });
+      }
+    };
+    
     return await this.constellation.profil.suivreImage({
-      f,
+      f: fWrapper,
       idCompte: accountId,
     });
   }
