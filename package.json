@@ -1,6 +1,6 @@
 {
   "name": "@riffcc/orbiter",
-  "version": "0.2.34-dev8",
+  "version": "0.2.34-dev9",
   "description": "",
   "main": "dist/index.js",
   "type": "module",
@@ -92,12 +92,10 @@
       "@localfirst/crdx",
       "@localfirst/crypto",
       "@localfirst/shared",
-      "@nxtedition/rocksdb",
       "classic-level",
       "esbuild",
       "iso-constants",
-      "msgpackr-extract",
-      "rocksdb"
+      "msgpackr-extract"
     ]
   }
 }
