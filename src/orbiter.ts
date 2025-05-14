@@ -1202,15 +1202,16 @@ export class Orbiter {
 
   async addRelease(release: Release): Promise<void> {
     const { swarmId, swarmSchema } = await this.orbiterConfig();
+    const { retryDbOperation } = await import("./utils/db-retry");
 
-    const resultIds = await this.constellation.bds.ajouterÉlémentÀTableauUnique(
-      {
+    const resultIds = await retryDbOperation(async () => {
+      return await this.constellation.bds.ajouterÉlémentÀTableauUnique({
         schémaBd: swarmSchema,
         idNuéeUnique: swarmId,
         clefTableau: RELEASES_DB_TABLE_KEY,
         vals: removeUndefined(release),
-      },
-    );
+      });
+    });
 
     if (resultIds && resultIds.length > 0) {
       this.events.emit("release added", {
@@ -1222,12 +1223,15 @@ export class Orbiter {
 
   async removeRelease(releaseId: string) {
     const { swarmId, swarmSchema } = await this.orbiterConfig();
+    const { retryDbOperation } = await import("./utils/db-retry");
 
-    await this.constellation.bds.effacerÉlémentDeTableauUnique({
-      schémaBd: swarmSchema,
-      idNuéeUnique: swarmId,
-      clefTableau: RELEASES_DB_TABLE_KEY,
-      idÉlément: releaseId,
+    await retryDbOperation(async () => {
+      await this.constellation.bds.effacerÉlémentDeTableauUnique({
+        schémaBd: swarmSchema,
+        idNuéeUnique: swarmId,
+        clefTableau: RELEASES_DB_TABLE_KEY,
+        idÉlément: releaseId,
+      });
     });
 
     this.events.emit("release removed", { releaseId });
@@ -1253,15 +1257,16 @@ export class Orbiter {
 
   async addCollection(collection: Collection): Promise<void> {
     const { swarmId, swarmSchema } = await this.orbiterConfig();
+    const { retryDbOperation } = await import("./utils/db-retry");
 
-    const resultIds = await this.constellation.bds.ajouterÉlémentÀTableauUnique(
-      {
+    const resultIds = await retryDbOperation(async () => {
+      return await this.constellation.bds.ajouterÉlémentÀTableauUnique({
         schémaBd: swarmSchema,
         idNuéeUnique: swarmId,
         clefTableau: COLLECTIONS_DB_TABLE_KEY,
         vals: removeUndefined(collection),
-      },
-    );
+      });
+    });
 
     if (resultIds && resultIds.length > 0) {
       this.events.emit("collection added", {
@@ -1273,12 +1278,15 @@ export class Orbiter {
 
   async removeCollection(collectionId: string) {
     const { swarmId, swarmSchema } = await this.orbiterConfig();
+    const { retryDbOperation } = await import("./utils/db-retry");
 
-    await this.constellation.bds.effacerÉlémentDeTableauUnique({
-      schémaBd: swarmSchema,
-      idNuéeUnique: swarmId,
-      clefTableau: COLLECTIONS_DB_TABLE_KEY,
-      idÉlément: collectionId,
+    await retryDbOperation(async () => {
+      await this.constellation.bds.effacerÉlémentDeTableauUnique({
+        schémaBd: swarmSchema,
+        idNuéeUnique: swarmId,
+        clefTableau: COLLECTIONS_DB_TABLE_KEY,
+        idÉlément: collectionId,
+      });
     });
   }
 
@@ -1607,22 +1615,31 @@ export class Orbiter {
     // Invitations are not revocable ! They can, however, be upgraded (moderator => admin), though not downgraded.
 
     const { modDbId, swarmId } = await this.orbiterConfig();
+    const { retryDbOperation } = await import("./utils/db-retry");
 
-    await this.constellation.nuées.inviterAuteur({
-      idNuée: swarmId,
-      idCompteAuteur: userId,
-      rôle: admin ? "MODÉRATEUR" : "MEMBRE",
+    await retryDbOperation(async () => {
+      await this.constellation.nuées.inviterAuteur({
+        idNuée: swarmId,
+        idCompteAuteur: userId,
+        rôle: admin ? "MODÉRATEUR" : "MEMBRE",
+      });
     });
-    await this.constellation.bds.inviterAuteur({
-      idBd: modDbId,
-      idCompteAuteur: userId,
-      rôle: admin ? "MODÉRATEUR" : "MEMBRE",
+
+    await retryDbOperation(async () => {
+      await this.constellation.bds.inviterAuteur({
+        idBd: modDbId,
+        idCompteAuteur: userId,
+        rôle: admin ? "MODÉRATEUR" : "MEMBRE",
+      });
     });
+
     if (admin) {
-      await this.constellation.donnerAccès({
-        idBd: this.siteId,
-        identité: userId,
-        rôle: "MODÉRATEUR",
+      await retryDbOperation(async () => {
+        await this.constellation.donnerAccès({
+          idBd: this.siteId,
+          identité: userId,
+          rôle: "MODÉRATEUR",
+        });
       });
     }
 
@@ -1634,23 +1651,29 @@ export class Orbiter {
 
   async blockRelease({ cid }: { cid: string }): Promise<string> {
     const { modDbId } = await this.orbiterConfig();
+    const { retryDbOperation } = await import("./utils/db-retry");
 
-    return (
-      await this.constellation.bds.ajouterÉlémentÀTableauParClef({
+    const result = await retryDbOperation(async () => {
+      return await this.constellation.bds.ajouterÉlémentÀTableauParClef({
         idBd: modDbId,
         clefTableau: BLOCKED_RELEASES_TABLE_KEY,
         vals: { [BLOCKED_RELEASES_RELEASE_ID_COLUMN]: cid },
-      })
-    )[0];
+      });
+    });
+    
+    return result[0];
   }
 
   async unblockRelease({ id }: { id: string }): Promise<void> {
     const { modDbId } = await this.orbiterConfig();
+    const { retryDbOperation } = await import("./utils/db-retry");
 
-    await this.constellation.bds.effacerÉlémentDeTableauParClef({
-      idBd: modDbId,
-      clefTableau: BLOCKED_RELEASES_TABLE_KEY,
-      idÉlément: id,
+    await retryDbOperation(async () => {
+      await this.constellation.bds.effacerÉlémentDeTableauParClef({
+        idBd: modDbId,
+        clefTableau: BLOCKED_RELEASES_TABLE_KEY,
+        idÉlément: id,
+      });
     });
   }
 
@@ -1833,6 +1856,11 @@ export const createOrbiter = async ({
   databaseConfig?: DatabaseConfig;
 }) => {
   const dir = await constellation.dossier();
+
+  if (databaseConfig) {
+    const { patchConstellationConfig } = await import("./constellation-patch");
+    patchConstellationConfig(databaseConfig);
+  }
 
   const existingConfig = await getConfig({
     dir,

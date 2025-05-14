@@ -14,6 +14,8 @@ import {
   créerConstellation,
 } from "constl-ipa-fork";
 
+import "./orbitedb-hook";
+
 import { createOrbiter, setUpSite, validateCategories } from "@/orbiter.js";
 import {
   configIsComplete,
