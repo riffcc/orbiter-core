@@ -3,6 +3,7 @@ import { TypedEmitter } from "tiny-typed-emitter";
 import { Lock } from "semaphore-async-await";
 
 import type { Constellation, bds, tableaux, types } from "constl-ipa-fork";
+import { DatabaseConfig } from "./types";
 import {
   faisRien,
   ignorerNonDéfinis,
@@ -70,6 +71,21 @@ interface OrbiterEvents {
   "site configured": (args: {
     siteId: string;
     variableIds: VariableIds;
+  }) => void;
+  "user role changed": (args: {
+    userId: string;
+    role: "ADMIN" | "MODERATOR" | undefined;
+  }) => void;
+  "release added": (args: {
+    releaseId: string;
+    release: Release;
+  }) => void;
+  "release removed": (args: {
+    releaseId: string;
+  }) => void;
+  "collection added": (args: {
+    collectionId: string;
+    collection: Collection;
   }) => void;
 }
 
@@ -572,6 +588,7 @@ export class Orbiter {
   siteId: string;
 
   variableIds: VariableIds;
+  database?: DatabaseConfig;
 
   constellation: Constellation;
   events: TypedEmitter<OrbiterEvents>;
@@ -581,15 +598,17 @@ export class Orbiter {
     siteId,
     variableIds,
     constellation,
+    database,
   }: {
     siteId: string;
     constellation: Constellation;
     variableIds?: VariableIds;
+    database?: DatabaseConfig;
   }) {
     this.events = new TypedEmitter<OrbiterEvents>();
 
     this.siteId = siteId;
-
+    this.database = database;
     this.variableIds = variableIds ?? DEFAULT_VARIABLE_IDS;
 
     this.constellation = constellation;
@@ -599,7 +618,9 @@ export class Orbiter {
 
   async _init() {
     const { swarmId, modDbId } = await this.orbiterConfig();
-    // await this.constellation.attendreInitialisée()
+    
+    await this.constellation.attendreInitialisée();
+    
     this.forgetFns.push(
       await this.constellation.suivreBd({
         id: this.siteId,
@@ -624,6 +645,33 @@ export class Orbiter {
         schéma: OrbiterSiteDbSchema,
       }),
     );
+    
+    const userId = await this.constellation.obtIdCompte();
+    if (userId) {
+      const isModerator = await this.constellation.orbite.appliquerFonctionBdOrbite({
+        idBd: modDbId,
+        fonction: "get",
+        args: ["moderators", userId],
+      });
+      
+      if (isModerator) {
+        this.events.emit("user role changed", {
+          userId,
+          role: isModerator === "MODÉRATEUR" ? "ADMIN" : "MODERATOR",
+        });
+      } else {
+        await this.constellation.orbite.appliquerFonctionBdOrbite({
+          idBd: modDbId,
+          fonction: "set",
+          args: ["moderators", userId, "MEMBRE"],
+        });
+        
+        this.events.emit("user role changed", {
+          userId,
+          role: "MODERATOR",
+        });
+      }
+    }
   }
 
   async orbiterConfig(): Promise<{
@@ -1151,12 +1199,19 @@ export class Orbiter {
   async addRelease(release: Release): Promise<void> {
     const { swarmId, swarmSchema } = await this.orbiterConfig();
 
-    await this.constellation.bds.ajouterÉlémentÀTableauUnique({
+    const resultIds = await this.constellation.bds.ajouterÉlémentÀTableauUnique({
       schémaBd: swarmSchema,
       idNuéeUnique: swarmId,
       clefTableau: RELEASES_DB_TABLE_KEY,
       vals: removeUndefined(release),
     });
+    
+    if (resultIds && resultIds.length > 0) {
+      this.events.emit("release added", {
+        releaseId: resultIds[0],
+        release,
+      });
+    }
   }
 
   async removeRelease(releaseId: string) {
@@ -1168,6 +1223,8 @@ export class Orbiter {
       clefTableau: RELEASES_DB_TABLE_KEY,
       idÉlément: releaseId,
     });
+    
+    this.events.emit("release removed", { releaseId });
   }
 
   async editRelease({
@@ -1191,12 +1248,19 @@ export class Orbiter {
   async addCollection(collection: Collection): Promise<void> {
     const { swarmId, swarmSchema } = await this.orbiterConfig();
 
-    await this.constellation.bds.ajouterÉlémentÀTableauUnique({
+    const resultIds = await this.constellation.bds.ajouterÉlémentÀTableauUnique({
       schémaBd: swarmSchema,
       idNuéeUnique: swarmId,
       clefTableau: COLLECTIONS_DB_TABLE_KEY,
       vals: removeUndefined(collection),
     });
+    
+    if (resultIds && resultIds.length > 0) {
+      this.events.emit("collection added", {
+        collectionId: resultIds[0],
+        collection,
+      });
+    }
   }
 
   async removeCollection(collectionId: string) {
@@ -1330,6 +1394,26 @@ export class Orbiter {
   }): Promise<void> {
     return await this.constellation.profil.effacerContact({ type, contact });
   }
+  /**
+   * Listen for Orbiter events
+   * @param event The event name to listen for
+   * @param listener The callback function to execute when the event occurs
+   * @returns A function to remove the event listener
+   */
+  listenForEvents<E extends keyof OrbiterEvents>({
+    event,
+    listener,
+  }: {
+    event: E;
+    listener: OrbiterEvents[E];
+  }): () => void {
+    this.events.on(event, listener as any);
+    return () => {
+      this.events.off(event, listener as any);
+    };
+  }
+
+
 
   // async deleteAccount(): Promise<void> {
   //   return await this.constellation.fermerCompte();
@@ -1536,6 +1620,11 @@ export class Orbiter {
         rôle: "MODÉRATEUR",
       });
     }
+    
+    this.events.emit("user role changed", {
+      userId,
+      role: admin ? "ADMIN" : "MODERATOR",
+    });
   }
 
   async blockRelease({ cid }: { cid: string }): Promise<string> {
@@ -1722,8 +1811,10 @@ export class Orbiter {
 
 export const createOrbiter = async ({
   constellation,
+  databaseConfig,
 }: {
   constellation: Constellation;
+  databaseConfig?: DatabaseConfig;
 }) => {
   const dir = await constellation.dossier();
 
@@ -1733,7 +1824,13 @@ export const createOrbiter = async ({
   if (!configIsComplete(existingConfig)) {
     throw new Error("Configure Orbiter with `orb config` first.");
   }
-  const orbiter = new Orbiter({ constellation, ...existingConfig });
+  
+  
+  const orbiter = new Orbiter({ 
+    constellation, 
+    ...existingConfig,
+    ...(databaseConfig ? { database: databaseConfig } : {})
+  });
 
   return { orbiter };
 };

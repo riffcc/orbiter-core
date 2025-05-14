@@ -58,9 +58,15 @@ export type VariableIds = Record<(typeof variableIdKeys)[number], string>;
 
 export type PossiblyIncompleteVariableIds = Partial<VariableIds>;
 
+export type DatabaseConfig = {
+  type: "many-level" | "rocksdb";
+  multiProcess?: boolean;
+};
+
 export type OrbiterConfig = {
   siteId: string;
   variableIds: VariableIds;
+  database?: DatabaseConfig;
 };
 
 export type RecursivePartial<T> = {
@@ -87,6 +93,19 @@ export const possiblyIncompleteOrbiterConfigSchema: JSONSchemaType<PossiblyIncom
         ) as { [P in keyof VariableIds]: { type: "string"; nullable: true } },
         required: [],
       },
+      database: {
+        type: "object",
+        nullable: true,
+        properties: {
+          type: { 
+            type: "string", 
+            enum: ["many-level", "rocksdb"],
+            nullable: true 
+          },
+          multiProcess: { type: "boolean", nullable: true },
+        },
+        required: [],
+      },
     },
     required: [],
   };
@@ -100,6 +119,18 @@ export const orbiterConfigSchema: JSONSchemaType<OrbiterConfig> = {
         variableIdKeys.map((v) => [v, { type: "string" }]),
       ) as { [P in keyof VariableIds]: { type: "string" } },
       required: variableIdKeys,
+    },
+    database: {
+      type: "object",
+      nullable: true,
+      properties: {
+        type: { 
+          type: "string", 
+          enum: ["many-level", "rocksdb"] 
+        },
+        multiProcess: { type: "boolean", nullable: true },
+      },
+      required: ["type"],
     },
   },
   required: ["siteId", "variableIds"],
