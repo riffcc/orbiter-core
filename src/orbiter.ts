@@ -64,6 +64,7 @@ import { categoriesFileSchema, variableIdKeys } from "./types.js";
 import { removeUndefined } from "./utils.js";
 import { configIsComplete, getConfig } from "./config.js";
 import Ajv from "ajv";
+import { retryDbOperation } from "./utils/db-retry.js";
 
 type forgetFunction = () => Promise<void>;
 
@@ -1202,7 +1203,6 @@ export class Orbiter {
 
   async addRelease(release: Release): Promise<void> {
     const { swarmId, swarmSchema } = await this.orbiterConfig();
-    const { retryDbOperation } = await import("./utils/db-retry");
 
     const resultIds = await retryDbOperation(async () => {
       return await this.constellation.bds.ajouterÉlémentÀTableauUnique({
@@ -1223,7 +1223,6 @@ export class Orbiter {
 
   async removeRelease(releaseId: string) {
     const { swarmId, swarmSchema } = await this.orbiterConfig();
-    const { retryDbOperation } = await import("./utils/db-retry");
 
     await retryDbOperation(async () => {
       await this.constellation.bds.effacerÉlémentDeTableauUnique({
@@ -1257,7 +1256,6 @@ export class Orbiter {
 
   async addCollection(collection: Collection): Promise<void> {
     const { swarmId, swarmSchema } = await this.orbiterConfig();
-    const { retryDbOperation } = await import("./utils/db-retry");
 
     const resultIds = await retryDbOperation(async () => {
       return await this.constellation.bds.ajouterÉlémentÀTableauUnique({
@@ -1278,7 +1276,6 @@ export class Orbiter {
 
   async removeCollection(collectionId: string) {
     const { swarmId, swarmSchema } = await this.orbiterConfig();
-    const { retryDbOperation } = await import("./utils/db-retry");
 
     await retryDbOperation(async () => {
       await this.constellation.bds.effacerÉlémentDeTableauUnique({
@@ -1383,9 +1380,13 @@ export class Orbiter {
   }: {
     image?: { contenu: Uint8Array; nomFichier: string };
   }): Promise<void> {
-    if (image)
-      return await this.constellation.profil.sauvegarderImage({ image });
-    else return await this.constellation.profil.effacerImage();
+    if (image) {
+      return await this.constellation.profil.sauvegarderImage({ 
+        image: image // Pass the image object directly as it already has the correct structure
+      });
+    } else {
+      return await this.constellation.profil.effacerImage();
+    }
   }
 
   async addContactInfo({
@@ -1615,7 +1616,6 @@ export class Orbiter {
     // Invitations are not revocable ! They can, however, be upgraded (moderator => admin), though not downgraded.
 
     const { modDbId, swarmId } = await this.orbiterConfig();
-    const { retryDbOperation } = await import("./utils/db-retry");
 
     await retryDbOperation(async () => {
       await this.constellation.nuées.inviterAuteur({
@@ -1651,7 +1651,6 @@ export class Orbiter {
 
   async blockRelease({ cid }: { cid: string }): Promise<string> {
     const { modDbId } = await this.orbiterConfig();
-    const { retryDbOperation } = await import("./utils/db-retry");
 
     const result = await retryDbOperation(async () => {
       return await this.constellation.bds.ajouterÉlémentÀTableauParClef({
@@ -1666,7 +1665,6 @@ export class Orbiter {
 
   async unblockRelease({ id }: { id: string }): Promise<void> {
     const { modDbId } = await this.orbiterConfig();
-    const { retryDbOperation } = await import("./utils/db-retry");
 
     await retryDbOperation(async () => {
       await this.constellation.bds.effacerÉlémentDeTableauParClef({

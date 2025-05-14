@@ -8,7 +8,9 @@
     ".": "./dist/index.js",
     "./orbitedb-hook": "./dist/orbitedb-hook.js",
     "./constellation-patch": "./dist/constellation-patch.js",
-    "./utils/db-retry": "./dist/utils/db-retry.js"
+    "./utils/db-retry": "./dist/utils/db-retry.js",
+    "./lens-client": "./dist/lens-client.js",
+    "./lens-server": "./dist/lens-server.js"
   },
   "scripts": {
     "clean": "rimraf dist",
@@ -44,6 +46,7 @@
     "@eslint/js": "^9.25.1",
     "@types/lodash-es": "^4.17.12",
     "@types/mocha": "^10.0.10",
+    "@types/node": "^22.15.18",
     "@types/yargs": "^17.0.33",
     "aegir": "^45.2.0",
     "ajv": "^8.17.1",

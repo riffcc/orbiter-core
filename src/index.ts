@@ -6,3 +6,5 @@ export * as consts from "./consts.js";
 export { configureOrbitDBStore } from "./orbitedb-hook.js";
 export { patchConstellationConfig } from "./constellation-patch.js";
 export { retryDbOperation } from "./utils/db-retry.js";
+export { isLensRunning, authorizeUserThroughLens } from "./lens-client.js";
+export { startLensServer } from "./lens-server.js";
