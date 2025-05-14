@@ -283,6 +283,10 @@ yargs(hideBin(process.argv))
 
       await createOrbiter({
         constellation,
+        databaseConfig: {
+          type: "rocksdb",
+          multiProcess: true,
+        },
       });
 
       process.stdin.on("data", async () => {
@@ -344,6 +348,10 @@ yargs(hideBin(process.argv))
 
       const { orbiter } = await createOrbiter({
         constellation,
+        databaseConfig: {
+          type: "rocksdb",
+          multiProcess: true,
+        },
       });
 
       wheel.start(chalk.yellow("Authorising account..."));
@@ -389,6 +397,10 @@ yargs(hideBin(process.argv))
 
       const { orbiter } = await createOrbiter({
         constellation,
+        databaseConfig: {
+          type: "rocksdb",
+          multiProcess: true,
+        },
       });
 
       wheel.start(chalk.yellow("Authorising account..."));
@@ -430,6 +442,10 @@ yargs(hideBin(process.argv))
 
       const { orbiter } = await createOrbiter({
         constellation,
+        databaseConfig: {
+          type: "rocksdb",
+          multiProcess: true,
+        },
       });
 
       wheel.start(chalk.yellow("Authorising account..."));
@@ -470,6 +486,10 @@ yargs(hideBin(process.argv))
   
       const { orbiter } = await createOrbiter({
         constellation,
+        databaseConfig: {
+          type: "rocksdb",
+          multiProcess: true,
+        },
       });
   
       // Check if JSON file exists and read it
@@ -575,6 +595,10 @@ yargs(hideBin(process.argv))
       try {
         const { orbiter } = await createOrbiter({
           constellation,
+          databaseConfig: {
+            type: "rocksdb",
+            multiProcess: true,
+          },
         });
 
         wheel.start(chalk.yellow(`Deleting ${releasesIds.length} releases...`));
