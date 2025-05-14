@@ -1381,8 +1381,9 @@ export class Orbiter {
     image?: { contenu: Uint8Array; nomFichier: string };
   }): Promise<void> {
     if (image) {
+      // Pass the image object with the correct structure
       return await this.constellation.profil.sauvegarderImage({ 
-        image: image // Pass the image object directly as it already has the correct structure
+        image
       });
     } else {
       return await this.constellation.profil.effacerImage();
