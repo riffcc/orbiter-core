@@ -283,6 +283,7 @@ yargs(hideBin(process.argv))
       let wheel: Ora | undefined = undefined;
       let forgetConnections: types.schémaFonctionOublier | undefined =
         undefined;
+      let stopLensServer: (() => Promise<void>) | undefined = undefined;
 
       if (argv.machine) {
         sendMachineMessage({ message: { type: "STARTING ORBITER" } });
@@ -296,13 +297,16 @@ yargs(hideBin(process.argv))
         domaines: argv.domain ? [argv.domain] : undefined,
       });
 
-      await createOrbiter({
+      const { orbiter } = await createOrbiter({
         constellation,
         databaseConfig: {
           type: "rocksdb",
           multiProcess: true,
         },
       });
+
+      const { startLensServer } = await import("./lens-server.js");
+      stopLensServer = startLensServer(orbiter, argv.dir);
 
       process.stdin.on("data", async () => {
         if (argv.machine) {
@@ -311,6 +315,7 @@ yargs(hideBin(process.argv))
           wheel?.start(chalk.yellow("Closing Orbiter..."));
         }
         try {
+          await stopLensServer?.();
           await forgetConnections?.();
           await constellation.fermer();
         } finally {
@@ -356,7 +361,27 @@ yargs(hideBin(process.argv))
     async (argv) => {
       if (!argv.account) throw new Error("Account must be specified.");
 
-      const wheel = ora(chalk.yellow(`Starting Orbiter`));
+      const wheel = ora(chalk.yellow(`Checking for running lens...`));
+      
+      // Check if a lens is running and use it if available
+      const { isLensRunning, authorizeUserThroughLens } = await import("./lens-client.js");
+      const lensRunning = await isLensRunning(argv.dir);
+      
+      if (lensRunning) {
+        wheel.info(chalk.yellow("Found running lens, using it for authorization"));
+        
+        try {
+          wheel.start(chalk.yellow("Authorising account through running lens..."));
+          await authorizeUserThroughLens(argv.account, true, argv.dir);
+          wheel.succeed(chalk.yellow("All done!"));
+          process.exit(0);
+        } catch (error) {
+          wheel.fail(chalk.red(`Error authorising through running lens: ${error.message}`));
+          wheel.info(chalk.yellow("Falling back to direct authorization..."));
+        }
+      }
+      
+      wheel.start(chalk.yellow(`Starting Orbiter for direct authorization`));
       const constellation = créerConstellation({
         dossier: argv.dir,
       });
