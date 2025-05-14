@@ -7,7 +7,8 @@
   "exports": {
     ".": "./dist/index.js",
     "./orbitedb-hook": "./dist/orbitedb-hook.js",
-    "./constellation-patch": "./dist/constellation-patch.js"
+    "./constellation-patch": "./dist/constellation-patch.js",
+    "./utils/db-retry": "./dist/utils/db-retry.js"
   },
   "scripts": {
     "clean": "rimraf dist",
