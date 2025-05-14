@@ -1660,7 +1660,7 @@ export class Orbiter {
         vals: { [BLOCKED_RELEASES_RELEASE_ID_COLUMN]: cid },
       });
     });
-    
+
     return result[0];
   }
 
