@@ -1858,7 +1858,7 @@ export const createOrbiter = async ({
   const dir = await constellation.dossier();
 
   if (databaseConfig) {
-    const { patchConstellationConfig } = await import("./constellation-patch");
+    const { patchConstellationConfig } = await import("./constellation-patch.js");
     patchConstellationConfig(databaseConfig);
   }
 

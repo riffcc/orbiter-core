@@ -4,3 +4,4 @@ export { version } from "./version.js";
 export * as types from "./types.js";
 export * as consts from "./consts.js";
 export { configureOrbitDBStore } from "./orbitedb-hook.js";
+export { patchConstellationConfig } from "./constellation-patch.js";

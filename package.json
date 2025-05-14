@@ -6,7 +6,8 @@
   "type": "module",
   "exports": {
     ".": "./dist/index.js",
-    "./orbitedb-hook": "./dist/orbitedb-hook.js"
+    "./orbitedb-hook": "./dist/orbitedb-hook.js",
+    "./constellation-patch": "./dist/constellation-patch.js"
   },
   "scripts": {
     "clean": "rimraf dist",
