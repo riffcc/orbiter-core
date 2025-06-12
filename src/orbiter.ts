@@ -2,11 +2,11 @@ import { TypedEmitter } from "tiny-typed-emitter";
 
 import { Lock } from "semaphore-async-await";
 
-import type { Constellation, bds, tableaux, types } from "constl-ipa-fork";
+import type { Constellation, bds, tableaux, types } from "@constl/ipa";
 import {
   faisRien,
   ignorerNonDéfinis,
-  suivreFonctionImbriquée,
+  suivreBdDeFonction,
   uneFois,
 } from "@constl/utils-ipa";
 import type { JSONSchemaType } from "ajv";
@@ -23,14 +23,12 @@ import {
   COLLECTIONS_THUMBNAIL_COLUMN,
   CONTENT_CATEGORIES_CATEGORY_ID,
   CONTENT_CATEGORIES_DISPLAY_NAME,
-  CONTENT_CATEGORIES_FEATURED,
   CONTENT_CATEGORIES_METADATA_SCHEMA,
   CONTENT_CATEGORIES_TABLE_KEY,
   DEFAULT_CONTENT_CATEGORIES,
   FEATURED_RELEASES_END_TIME_COLUMN,
   FEATURED_RELEASES_RELEASE_ID_COLUMN,
   FEATURED_RELEASES_START_TIME_COLUMN,
-  FEATURED_PROMOTED_COLUMN,
   FEATURED_RELEASES_TABLE_KEY,
   RELEASES_AUTHOR_COLUMN,
   RELEASES_CATEGORY_COLUMN,
@@ -43,7 +41,6 @@ import {
   TRUSTED_SITES_NAME_COL,
   TRUSTED_SITES_SITE_ID_COL,
   TRUSTED_SITES_TABLE_KEY,
-  DEFAULT_VARIABLE_IDS,
 } from "./consts.js";
 import type {
   BlockedRelease,
@@ -87,18 +84,18 @@ const ROOT_DB_JSON_SCHEMA: JSONSchemaType<Partial<RootDbSchema>> = {
 };
 
 const OrbiterSiteDbSchema: JSONSchemaType<{ modDb: string; swarmId: string }> =
-  {
-    type: "object",
-    properties: {
-      modDb: {
-        type: "string",
-      },
-      swarmId: {
-        type: "string",
-      },
+{
+  type: "object",
+  properties: {
+    modDb: {
+      type: "string",
     },
-    required: ["modDb", "swarmId"],
-  };
+    swarmId: {
+      type: "string",
+    },
+  },
+  required: ["modDb", "swarmId"],
+};
 
 const getSwarmDbSchema = ({
   releasesFileVar,
@@ -205,15 +202,13 @@ const getSwarmDbSchema = ({
   };
 };
 
-export const validateCategories = async ({ dir } : { dir: string }) => {
+export const validateCategories = async (dir?: string) => {
   let categoriesData = DEFAULT_CONTENT_CATEGORIES;
-  const { readFileSync, existsSync } = await import("fs");
-  const { join } = await import("path");
-  const categoriesPath = join(dir, "contentCategories.json");
-  
-  if (existsSync(categoriesPath)) {
+  if (dir) {
+    const { readFileSync } = await import("fs")
+    const { join } = await import("path")
+    const categoriesPath = join(dir, "categories.json");
     categoriesData = JSON.parse(readFileSync(categoriesPath, "utf8"));
-    console.log(JSON.stringify(categoriesData, null, 2));
     const ajv = new Ajv();
     const validate = ajv.compile(categoriesFileSchema);
     const valid = validate(categoriesData);
@@ -262,32 +257,22 @@ export const setUpSite = async ({
     (await constellation.variables.créerVariable({
       catégorie: "horoDatage",
     }));
-    const featuredReleasesPromotedVar =
-    variableIds.featuredReleasesPromotedVar ||
-    (await constellation.variables.créerVariable({
-      catégorie: "booléen",
-    }));
   const blockedReleasesReleaseIdVar =
     variableIds.blockedReleasesReleaseIdVar ||
     (await constellation.variables.créerVariable({
       catégorie: "chaîneNonTraductible",
     }));
-    const contentCategoriesCategoryIdVar =
+  const contentCategoriesCategoryIdVar =
     variableIds.contentCategoriesCategoryIdVar ||
     (await constellation.variables.créerVariable({
       catégorie: "chaîneNonTraductible",
     }));
-    const contentCategoriesDisplayNameVar =
+  const contentCategoriesDisplayNameVar =
     variableIds.contentCategoriesDisplayNameVar ||
     (await constellation.variables.créerVariable({
       catégorie: "chaîneNonTraductible",
     }));
-    const contentCategoriesFeaturedVar =
-    variableIds.contentCategoriesFeaturedVar ||
-    (await constellation.variables.créerVariable({
-      catégorie: "booléen",
-    }));
-    const contentCategoriesMetadataSchemaVar =
+  const contentCategoriesMetadataSchemaVar =
     variableIds.contentCategoriesMetadataSchemaVar ||
     (await constellation.variables.créerVariable({
       catégorie: "chaîneNonTraductible",
@@ -325,10 +310,10 @@ export const setUpSite = async ({
       catégorie: "chaîneNonTraductible",
     }));
   const releasesCategoryVar =
-  variableIds.releasesCategoryVar ||
-  (await constellation.variables.créerVariable({
-    catégorie: "chaîneNonTraductible",
-  }));
+    variableIds.releasesCategoryVar ||
+    (await constellation.variables.créerVariable({
+      catégorie: "chaîneNonTraductible",
+    }));
 
   // Variables for collections table
   const collectionsNameVar =
@@ -441,10 +426,6 @@ export const setUpSite = async ({
                 idVariable: featuredReleasesEndTimeVar,
                 idColonne: FEATURED_RELEASES_END_TIME_COLUMN,
               },
-              {
-                idVariable: featuredReleasesPromotedVar,
-                idColonne: FEATURED_PROMOTED_COLUMN,
-              },
             ],
             clef: FEATURED_RELEASES_TABLE_KEY,
           },
@@ -468,10 +449,6 @@ export const setUpSite = async ({
                 idColonne: CONTENT_CATEGORIES_DISPLAY_NAME,
               },
               {
-                idVariable: contentCategoriesFeaturedVar,
-                idColonne: CONTENT_CATEGORIES_FEATURED,
-              },
-              {
                 idVariable: contentCategoriesMetadataSchemaVar,
                 idColonne: CONTENT_CATEGORIES_METADATA_SCHEMA,
               },
@@ -482,18 +459,14 @@ export const setUpSite = async ({
       },
     });
     for (const category of categoriesData) {
-      const vals: types.élémentsBd = {
-        [CONTENT_CATEGORIES_CATEGORY_ID]: category.categoryId,
-        [CONTENT_CATEGORIES_DISPLAY_NAME]: category.displayName,
-        [CONTENT_CATEGORIES_METADATA_SCHEMA]: JSON.stringify(category.metadataSchema),
-      }
-      if (category.featured) {
-        vals[CONTENT_CATEGORIES_FEATURED] = category.featured
-      }
       await constellation.bds.ajouterÉlémentÀTableauParClef({
         idBd: modDbId,
         clefTableau: CONTENT_CATEGORIES_TABLE_KEY,
-        vals,
+        vals: {
+          [CONTENT_CATEGORIES_CATEGORY_ID]: category.categoryId,
+          [CONTENT_CATEGORIES_DISPLAY_NAME]: category.displayName,
+          [CONTENT_CATEGORIES_METADATA_SCHEMA]: JSON.stringify(category.metadataSchema),
+        },
       });
     }
   }
@@ -507,15 +480,13 @@ export const setUpSite = async ({
     featuredReleasesReleaseIdVar,
     featuredReleasesStartTimeVar,
     featuredReleasesEndTimeVar,
-    featuredReleasesPromotedVar,
-    
+
     // blocked releases
     blockedReleasesReleaseIdVar,
 
     // content categories
     contentCategoriesCategoryIdVar,
     contentCategoriesDisplayNameVar,
-    contentCategoriesFeaturedVar,
     contentCategoriesMetadataSchemaVar,
 
     // releases
@@ -583,14 +554,14 @@ export class Orbiter {
     constellation,
   }: {
     siteId: string;
+    variableIds: VariableIds;
     constellation: Constellation;
-    variableIds?: VariableIds;
   }) {
     this.events = new TypedEmitter<OrbiterEvents>();
 
     this.siteId = siteId;
 
-    this.variableIds = variableIds ?? DEFAULT_VARIABLE_IDS;
+    this.variableIds = variableIds;
 
     this.constellation = constellation;
 
@@ -712,7 +683,7 @@ export class Orbiter {
   }: {
     f: (sites?: tableaux.élémentDonnées<TrustedSite>[]) => void;
   }): Promise<forgetFunction> {
-    return await suivreFonctionImbriquée({
+    return await suivreBdDeFonction({
       fRacine: async ({
         fSuivreRacine,
       }: {
@@ -753,7 +724,7 @@ export class Orbiter {
     f: (releases?: { cid: string; id: string }[]) => void;
     siteId?: string;
   }): Promise<forgetFunction> {
-    return await suivreFonctionImbriquée({
+    return await suivreBdDeFonction({
       fRacine: async ({
         fSuivreRacine,
       }: {
@@ -806,7 +777,7 @@ export class Orbiter {
     siteId?: string;
     desiredNResults?: number;
   }): Promise<types.schémaFonctionOublier> {
-    return await suivreFonctionImbriquée({
+    return await suivreBdDeFonction({
       fRacine: async ({
         fSuivreRacine,
       }: {
@@ -860,7 +831,7 @@ export class Orbiter {
     siteId?: string;
     desiredNResults?: number;
   }): Promise<types.schémaFonctionOublier> {
-    return await suivreFonctionImbriquée({
+    return await suivreBdDeFonction({
       fRacine: async ({
         fSuivreRacine,
       }: {
@@ -910,13 +881,13 @@ export class Orbiter {
     f: types.schémaFonctionSuivi<{ id: string; featured: FeaturedRelease }[]>;
     siteId?: string;
   }): Promise<types.schémaFonctionOublier> {
-    return await suivreFonctionImbriquée({
+    return await suivreBdDeFonction({
       fRacine: async ({
         fSuivreRacine,
       }: {
         fSuivreRacine: (nouvelIdBdCible?: string) => Promise<void>;
       }): Promise<forgetFunction> => {
-        return await this.followSiteModDbId({
+        return await this.followSiteSwarmId({
           f: fSuivreRacine,
           siteId,
         });
@@ -931,18 +902,22 @@ export class Orbiter {
           { id: string; featured: FeaturedRelease }[]
         >;
       }): Promise<forgetFunction> => {
-        return await this.constellation.bds.suivreDonnéesDeTableauParClef<FeaturedRelease>(
-          {
-            idBd: id,
-            clefTableau: FEATURED_RELEASES_TABLE_KEY,
-            f: async (featured) => {
-              await fSuivreBd(featured.map((x) => ({
-                id: x.id,
-                featured: x.données,
-              })))
+        const { fOublier } =
+          await this.constellation.nuées.suivreDonnéesTableauNuée<FeaturedRelease>(
+            {
+              idNuée: id,
+              clefTableau: FEATURED_RELEASES_TABLE_KEY,
+              f: (featured) =>
+                fSuivreBd(
+                  featured.map((x) => ({
+                    id: x.élément.id,
+                    featured: x.élément.données,
+                  })),
+                ),
+              clefsSelonVariables: false,
             },
-          },
-        );
+          );
+        return fOublier;
       },
     });
   }
@@ -1095,7 +1070,7 @@ export class Orbiter {
         (s) => !sitesList.some((x) => x.siteId === s),
       );
 
-      for (const site of newSites) {
+      for (const site of newSites) {  
         const fsForgetSite: types.schémaFonctionOublier[] = [];
 
         const { siteId } = site;
@@ -1104,6 +1079,102 @@ export class Orbiter {
         this.listenForSiteCollections({
           f: async (entries) => {
             siteInfos[siteId].entries = entries;
+            await fFinal();
+          },
+          siteId: site.siteId,
+        }).then((fOublier) => fsForgetSite.push(fOublier));
+
+        siteInfos[siteId].fForget = async () => {
+          await Promise.all(fsForgetSite.map((f) => f()));
+        };
+        await fFinal();
+      }
+      for (const site of obsoleteSites) {
+        const { fForget } = siteInfos[site];
+        if (fForget) await fForget();
+        delete siteInfos[site];
+      }
+
+      await fFinal();
+      lock.release();
+    };
+
+    // Need to call once manually to get the user's own entries to show even if user is offline or
+    // the site's master databases are unreachable.
+    await fFollowTrustedSites();
+
+    let forgetTrustedSites: types.schémaFonctionOublier;
+    this.followTrustedSites({ f: fFollowTrustedSites }).then(
+      (fForget) => (forgetTrustedSites = fForget),
+    );
+
+    const fForget = async () => {
+      cancelled = true;
+      if (forgetTrustedSites) await forgetTrustedSites();
+      await Promise.all(
+        Object.values(siteInfos).map((s) =>
+          s.fForget ? s.fForget() : Promise.resolve(),
+        ),
+      );
+    };
+
+    return fForget;
+  }
+
+  async listenForFeaturedReleases({
+    f,
+  }: {
+    f: types.schémaFonctionSuivi<FeaturedRelease[]>;
+  }): Promise<types.schémaFonctionOublier> {
+    // Todo: implement filtering of other sites' features according to our blocked CID list?
+    type SiteInfo = {
+      featuredReleases?: FeaturedRelease[];
+      fForget?: forgetFunction;
+    };
+    const siteInfos: { [site: string]: SiteInfo } = {};
+
+    let cancelled = false;
+    const lock = new Lock();
+
+    const fFinal = async () => {
+      const releases = Object.entries(siteInfos)
+        .map((s) =>
+          (s[1].featuredReleases || []).map((r) => ({ ...r, site: s[0] })),
+        )
+        .flat();
+      await f(releases);
+    };
+
+    const fFollowTrustedSites = async (
+      sites?: tableaux.élémentDonnées<TrustedSite>[],
+    ) => {
+      const sitesList = (sites || []).map((s) => s.données);
+      sitesList.push({
+        [TRUSTED_SITES_SITE_ID_COL]: this.siteId,
+        [TRUSTED_SITES_NAME_COL]: "Me !",
+      });
+
+      await lock.acquire();
+      if (cancelled) return;
+
+      const newSites = sitesList.filter(
+        (s) => !Object.keys(siteInfos).includes(s.siteId),
+      );
+      const obsoleteSites = Object.keys(siteInfos).filter(
+        (s) => !sitesList.some((x) => x.siteId === s),
+      );
+
+      for (const site of newSites) {
+        const fsForgetSite: types.schémaFonctionOublier[] = [];
+
+        const { siteId } = site;
+        siteInfos[siteId] = {};
+
+        this.listenForSiteFeaturedReleases({
+          f: async (entries) => {
+            siteInfos[siteId].featuredReleases = entries.map(
+              (x) => x.featured,
+            );
             await fFinal();
           },
           siteId: site.siteId,
@@ -1298,6 +1369,35 @@ export class Orbiter {
     else await this.constellation.profil.effacerNom({ langue: language });
   }
 
+  // User Bio functions
+  async changeBio({
+    bio,
+    language,
+  }: {
+    bio?: string;
+    language: string;
+  }): Promise<void> {
+    if (bio)
+      await this.constellation.profil.sauvegarderBio({
+        langue: language,
+        nom: bio,
+      });
+    else await this.constellation.profil.effacerBio({ langue: language });
+  }
+
+  async listenForBioChange({
+    f,
+    accountId,
+  }: {
+    f: (bio: { [language: string]: string }) => void;
+    accountId?: string;
+  }): Promise<forgetFunction> {
+    return await this.constellation.profil.suivreBio({
+      f,
+      idCompte: accountId,
+    });
+  }
+
   async changeProfilePhoto({
     image,
   }: {
@@ -1381,7 +1481,7 @@ export class Orbiter {
     f,
     accountId,
   }: {
-    f: types.schémaFonctionSuivi<{ image: Uint8Array; idImage: string; } | null>;
+    f: types.schémaFonctionSuivi<Uint8Array | null>;
     accountId?: string;
   }): Promise<types.schémaFonctionOublier> {
     return await this.constellation.profil.suivreImage({
@@ -1441,12 +1541,10 @@ export class Orbiter {
     cid,
     startTime,
     endTime,
-    promoted
   }: {
     cid: string;
-    startTime: string;
-    endTime: string;
-    promoted: boolean;
+    startTime: number;
+    endTime: number;
   }) {
     const { modDbId } = await this.orbiterConfig();
 
@@ -1458,29 +1556,10 @@ export class Orbiter {
           [FEATURED_RELEASES_RELEASE_ID_COLUMN]: cid,
           [FEATURED_RELEASES_START_TIME_COLUMN]: startTime,
           [FEATURED_RELEASES_END_TIME_COLUMN]: endTime,
-          [FEATURED_PROMOTED_COLUMN]: promoted,
         },
       })
     )[0];
   }
-
-  async editFeaturedRelease({
-    elementId,
-    featuredRelease,
-  }: {
-    elementId: string;
-    featuredRelease: Partial<FeaturedRelease>;
-  }): Promise<void> {
-    const { modDbId } = await this.orbiterConfig();
-
-    await this.constellation.bds.modifierÉlémentDeTableauParClef({
-      idBd: modDbId,
-      clefTableau: FEATURED_RELEASES_TABLE_KEY,
-      idÉlément: elementId,
-      vals: removeUndefined(featuredRelease),
-    });
-  }
-
 
   async followIsModerator({
     f,
@@ -1662,18 +1741,15 @@ export class Orbiter {
 
   async addCategory(category: ContentCategory): Promise<string> {
     const { modDbId } = await this.orbiterConfig();
-    const vals: types.élémentsBd = {
-      [CONTENT_CATEGORIES_CATEGORY_ID]: category.categoryId,
-      [CONTENT_CATEGORIES_DISPLAY_NAME]: category.displayName,
-      [CONTENT_CATEGORIES_METADATA_SCHEMA]: JSON.stringify(category.metadataSchema),
-    }
-    if (category.featured) {
-      vals[CONTENT_CATEGORIES_FEATURED] = category.featured
-    }
+
     const elementIds = await this.constellation.bds.ajouterÉlémentÀTableauParClef({
       idBd: modDbId,
       clefTableau: CONTENT_CATEGORIES_TABLE_KEY,
-      vals,
+      vals: {
+        [CONTENT_CATEGORIES_CATEGORY_ID]: category.categoryId,
+        [CONTENT_CATEGORIES_DISPLAY_NAME]: category.displayName,
+        [CONTENT_CATEGORIES_METADATA_SCHEMA]: category.metadataSchema,
+      },
     });
     return elementIds[0];
   }
@@ -1705,7 +1781,7 @@ export class Orbiter {
     f: types.schémaFonctionSuivi<ContentCategoryWithId[]>;
   }): Promise<types.schémaFonctionOublier> {
     const { modDbId } = await this.orbiterConfig();
-    
+
     return await this.constellation.bds.suivreDonnéesDeTableauParClef<ContentCategory>({
       idBd: modDbId,
       clefTableau: CONTENT_CATEGORIES_TABLE_KEY,
