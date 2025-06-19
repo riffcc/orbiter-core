@@ -1380,7 +1380,7 @@ export class Orbiter {
     if (bio)
       await this.constellation.profil.sauvegarderBio({
         langue: language,
-        nom: bio,
+        bio: bio,
       });
     else await this.constellation.profil.effacerBio({ langue: language });
   }
