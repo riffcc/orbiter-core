@@ -6,7 +6,7 @@ import type { Constellation, bds, tableaux, types } from "@constl/ipa";
 import {
   faisRien,
   ignorerNonDéfinis,
-  suivreBdDeFonction,
+  suivreFonctionImbriquée,
   uneFois,
 } from "@constl/utils-ipa";
 import type { JSONSchemaType } from "ajv";
@@ -277,6 +277,16 @@ export const setUpSite = async ({
     (await constellation.variables.créerVariable({
       catégorie: "chaîneNonTraductible",
     }));
+  const contentCategoriesFeaturedVar =
+    variableIds.contentCategoriesFeaturedVar ||
+    (await constellation.variables.créerVariable({
+      catégorie: "booléen",
+    }));
+  const featuredReleasesPromotedVar =
+    variableIds.featuredReleasesPromotedVar ||
+    (await constellation.variables.créerVariable({
+      catégorie: "booléen",
+    }));
 
   // Variables for releases table
   const releasesFileVar =
@@ -346,6 +356,8 @@ export const setUpSite = async ({
     (await constellation.variables.créerVariable({
       catégorie: "fichier",
     }));
+
+
 
   // Swarm ID for site
   let swarmId = siteId ? await constellation.orbite.appliquerFonctionBdOrbite({
@@ -426,6 +438,10 @@ export const setUpSite = async ({
                 idVariable: featuredReleasesEndTimeVar,
                 idColonne: FEATURED_RELEASES_END_TIME_COLUMN,
               },
+              {
+                idVariable: featuredReleasesPromotedVar,
+                idColonne: FEATURED_RELEASES_END_TIME_COLUMN,
+              },
             ],
             clef: FEATURED_RELEASES_TABLE_KEY,
           },
@@ -480,6 +496,8 @@ export const setUpSite = async ({
     featuredReleasesReleaseIdVar,
     featuredReleasesStartTimeVar,
     featuredReleasesEndTimeVar,
+    featuredReleasesPromotedVar,
+    contentCategoriesFeaturedVar,
 
     // blocked releases
     blockedReleasesReleaseIdVar,
@@ -505,6 +523,7 @@ export const setUpSite = async ({
     collectionsThumbnailVar,
     collectionsReleasesVar,
     collectionsCategoryVar,
+
   };
 
   siteId =
@@ -683,7 +702,7 @@ export class Orbiter {
   }: {
     f: (sites?: tableaux.élémentDonnées<TrustedSite>[]) => void;
   }): Promise<forgetFunction> {
-    return await suivreBdDeFonction({
+    return await suivreFonctionImbriquée({
       fRacine: async ({
         fSuivreRacine,
       }: {
@@ -724,7 +743,7 @@ export class Orbiter {
     f: (releases?: { cid: string; id: string }[]) => void;
     siteId?: string;
   }): Promise<forgetFunction> {
-    return await suivreBdDeFonction({
+    return await suivreFonctionImbriquée({
       fRacine: async ({
         fSuivreRacine,
       }: {
@@ -777,7 +796,7 @@ export class Orbiter {
     siteId?: string;
     desiredNResults?: number;
   }): Promise<types.schémaFonctionOublier> {
-    return await suivreBdDeFonction({
+    return await suivreFonctionImbriquée({
       fRacine: async ({
         fSuivreRacine,
       }: {
@@ -831,7 +850,7 @@ export class Orbiter {
     siteId?: string;
     desiredNResults?: number;
   }): Promise<types.schémaFonctionOublier> {
-    return await suivreBdDeFonction({
+    return await suivreFonctionImbriquée({
       fRacine: async ({
         fSuivreRacine,
       }: {
@@ -881,7 +900,7 @@ export class Orbiter {
     f: types.schémaFonctionSuivi<{ id: string; featured: FeaturedRelease }[]>;
     siteId?: string;
   }): Promise<types.schémaFonctionOublier> {
-    return await suivreBdDeFonction({
+    return await suivreFonctionImbriquée({
       fRacine: async ({
         fSuivreRacine,
       }: {
@@ -1485,7 +1504,7 @@ export class Orbiter {
     accountId?: string;
   }): Promise<types.schémaFonctionOublier> {
     return await this.constellation.profil.suivreImage({
-      f,
+      f: x=> {if (x) return f(x.image)},
       idCompte: accountId,
     });
   }

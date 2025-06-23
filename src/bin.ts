@@ -127,7 +127,7 @@ yargs(hideBin(process.argv))
       const existingConfig = await getConfig({ dir });
       if (!argv.ignoreDefaults)
         existingConfig.variableIds = {...DEFAULT_VARIABLE_IDS, ...existingConfig.variableIds}
-      const categoriesData = await validateCategories({ dir});
+      const categoriesData = await validateCategories(dir);
       const config = await setUpSite({ constellation, categoriesData,  ...existingConfig });
       await saveConfig({ dir, config, mode: "json" });
       await constellation.fermer();
